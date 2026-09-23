@@ -19,16 +19,21 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Android SDK kurulumu
-        uses: android-actions/setup-android@v3
-
-      - name: Android SDK paketlerini hazırla
+      - name: Android Command Line Tools indir
         run: |
-          SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)
-          echo "SDKMANAGER=$SDKMANAGER"
-          chmod +x "$SDKMANAGER"
-          yes | "$SDKMANAGER" --licenses || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          cd /tmp
+          curl -L -o commandlinetools.zip \
+            https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
+          unzip -q commandlinetools.zip
+          mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
+          cp -r cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
+
+      - name: Android SDK paketlerini kur
+        run: |
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Gradle kurulumu
         uses: gradle/actions/setup-gradle@v4
