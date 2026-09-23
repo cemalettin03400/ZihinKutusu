@@ -43,14 +43,15 @@ jobs:
         run: |
           gradle :app:bundleRelease
 
+      - name: APK oluştur
+        run: |
+          gradle :app:assembleDebug
+
       - name: AAB dosyasını yükle
         uses: actions/upload-artifact@v4
         with:
           name: ZihinKutusu-AAB
           path: app/build/outputs/bundle/release/*.aab
-                - name: APK oluştur
-        run: |
-          gradle :app:assembleDebug
 
       - name: APK dosyasını yükle
         uses: actions/upload-artifact@v4
