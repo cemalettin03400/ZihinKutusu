@@ -23,8 +23,7 @@ jobs:
         run: |
           mkdir -p "$ANDROID_HOME/cmdline-tools"
           cd /tmp
-          curl -L -o commandlinetools.zip \
-            https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
+          curl -L -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip
           unzip -q commandlinetools.zip
           mkdir -p "$ANDROID_HOME/cmdline-tools/latest"
           cp -r cmdline-tools/* "$ANDROID_HOME/cmdline-tools/latest/"
