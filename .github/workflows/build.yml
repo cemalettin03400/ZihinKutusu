@@ -19,18 +19,22 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Android SDK'yı hazırla
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          yes | sdkmanager --licenses || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
       - name: Gradle kurulumu
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: AAB oluştur
-        run: gradle :app:bundleRelease
+        run: |
+          gradle :app:bundleRelease
 
-      - name: AAB dosyasını kaydet
+      - name: AAB dosyasını yükle
         uses: actions/upload-artifact@v4
         with:
           name: ZihinKutusu-AAB
