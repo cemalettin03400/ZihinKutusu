@@ -32,7 +32,7 @@ jobs:
         run: |
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
           yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Gradle kurulumu
         uses: gradle/actions/setup-gradle@v4
@@ -40,15 +40,13 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: AAB oluştur
-  env:
-    KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-  run: |
-    ./gradlew :app:bundleRelease
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-
+          ./gradlew :app:bundleRelease
       - name: APK oluştur
         run: |
           gradle :app:assembleDebug
