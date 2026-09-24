@@ -145,6 +145,96 @@ class MainActivity : Activity() {
         root.addView(ad, LinearLayout.LayoutParams(-1, dp(50)))
     }
 
+
+    private fun totalFoundWords(): Int = prefs.getInt("totalFoundWords", 0)
+    private fun completedLevels(): Int = prefs.getInt("completedLevels", 0)
+    private fun bestCombo(): Int = prefs.getInt("bestCombo", 0)
+
+    private fun achievementUnlocked(id: String): Boolean =
+        prefs.getBoolean("achievement_$id", false)
+
+    private fun unlockAchievement(id: String, title: String, reward: Int) {
+        if (achievementUnlocked(id)) return
+        prefs.edit()
+            .putBoolean("achievement_$id", true)
+            .putInt("coins", coins + reward)
+            .apply()
+        coins += reward
+        Toast.makeText(this, "🏆 Başarı açıldı: $title\n+$reward altın", Toast.LENGTH_LONG).show()
+    }
+
+    private fun updateAchievements() {
+        val words = totalFoundWords()
+        val completed = completedLevels()
+        val comboNow = bestCombo()
+        if (words >= 1) unlockAchievement("first_word", "İlk Kelime", 10)
+        if (words >= 10) unlockAchievement("ten_words", "10 Kelime", 20)
+        if (words >= 50) unlockAchievement("fifty_words", "50 Kelime", 40)
+        if (words >= 100) unlockAchievement("hundred_words", "100 Kelime", 75)
+        if (completed >= 10) unlockAchievement("ten_levels", "10 Bölüm", 30)
+        if (completed >= 25) unlockAchievement("twentyfive_levels", "25 Bölüm", 60)
+        if (completed >= 50) unlockAchievement("fifty_levels", "50 Bölüm", 100)
+        if (completed >= 100) unlockAchievement("hundred_levels", "100 Bölüm", 200)
+        if (comboNow >= 5) unlockAchievement("combo_five", "5'li Seri", 25)
+        if (comboNow >= 10) unlockAchievement("combo_ten", "10'lu Seri", 60)
+    }
+
+    private fun showAchievements() {
+        root = base()
+        root.addView(title("🏆 BAŞARILAR", 28f), LinearLayout.LayoutParams(-1, dp(55)))
+        val words = totalFoundWords()
+        val completed = completedLevels()
+        val comboBest = bestCombo()
+
+        val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val achievements = listOf(
+            Triple("first_word", "İlk Kelime", "İlk kelimeyi bul • +10 altın"),
+            Triple("ten_words", "10 Kelime", "Toplam 10 kelime bul • +20 altın"),
+            Triple("fifty_words", "50 Kelime", "Toplam 50 kelime bul • +40 altın"),
+            Triple("hundred_words", "100 Kelime", "Toplam 100 kelime bul • +75 altın"),
+            Triple("ten_levels", "10 Bölüm", "10 bölüm tamamla • +30 altın"),
+            Triple("twentyfive_levels", "25 Bölüm", "25 bölüm tamamla • +60 altın"),
+            Triple("fifty_levels", "50 Bölüm", "50 bölüm tamamla • +100 altın"),
+            Triple("hundred_levels", "100 Bölüm", "100 bölüm tamamla • +200 altın"),
+            Triple("combo_five", "5'li Seri", "5 kelimeyi arka arkaya bul • +25 altın"),
+            Triple("combo_ten", "10'lu Seri", "10 kelimeyi arka arkaya bul • +60 altın")
+        )
+        achievements.forEach { (id, name, desc) ->
+            val unlocked = achievementUnlocked(id)
+            val t = TextView(this).apply {
+                text = if (unlocked) "🏆 $name\n$desc\n✓ TAMAMLANDI" else "🔒 $name\n$desc"
+                textSize = 14f
+                setPadding(dp(14), dp(8), dp(14), dp(8))
+                setTextColor(if (unlocked) Color.rgb(40,130,75) else Color.DKGRAY)
+                background = rounded(if (unlocked) Color.rgb(225,247,231) else Color.WHITE, 14f)
+            }
+            list.addView(t, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, dp(3), 0, dp(3)) })
+        }
+        val scroll = ScrollView(this)
+        scroll.addView(list)
+        root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        root.addView(gameButton("← ANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(-1, dp(52)).apply { setMargins(0, dp(6), 0, 0) })
+        setContentView(root)
+    }
+
+    private fun showStats() {
+        root = base()
+        root.addView(title("📊 İSTATİSTİKLER", 28f), LinearLayout.LayoutParams(-1, dp(55)))
+        val totalStars = (1..100).sumOf { getStars(it) }
+        val t = TextView(this).apply {
+            text = "🏆 Toplam Puan\n$score\n\n🪙 Altın\n$coins\n\n🔎 Bulunan Kelime\n${totalFoundWords()}\n\n🗺️ Tamamlanan Bölüm\n${completedLevels()}/100\n\n⭐ Toplam Yıldız\n$totalStars/300\n\n🔥 En Uzun Seri\n${bestCombo()}\n\n🔓 Açılan Bölüm\n$maxUnlocked/100"
+            textSize = 19f
+            gravity = Gravity.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(65,45,85))
+            background = rounded(Color.WHITE, 18f)
+            setPadding(dp(15), dp(15), dp(15), dp(15))
+        }
+        root.addView(t, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(0, dp(8), 0, dp(8)) })
+        root.addView(gameButton("← ANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(-1, dp(52)))
+        setContentView(root)
+    }
+
     private fun showMenu() {
         root = base()
         root.addView(title("🧠 ZİHİN KUTUSU", 30f), LinearLayout.LayoutParams(-1, dp(55)))
@@ -167,6 +257,11 @@ class MainActivity : Activity() {
 
         root.addView(gameButton("🎯  OYUNA BAŞLA\nBölüm $level" ) { startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("🗺️  BÖLÜMLER\n1 - 100" ) { showLevels() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
+        val infoRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        infoRow.addView(gameButton("🏆\nBAŞARILAR") { showAchievements() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(0, 0, dp(4), dp(8)) })
+        infoRow.addView(gameButton("📊\nİSTATİSTİK") { showStats() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(dp(4), 0, 0, dp(8)) })
+        root.addView(infoRow)
+
         root.addView(gameButton("❓  NASIL OYNANIR?" ) { help() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("🚪  ÇIKIŞ" ) { exitGame() }, LinearLayout.LayoutParams(-1, dp(58)))
 
@@ -375,6 +470,12 @@ class MainActivity : Activity() {
         val p = currentPuzzle ?: return
         found.add(word)
         combo += 1
+        val newTotalWords = totalFoundWords() + 1
+        val newBestCombo = maxOf(bestCombo(), combo)
+        prefs.edit()
+            .putInt("totalFoundWords", newTotalWords)
+            .putInt("bestCombo", newBestCombo)
+            .apply()
         val lengthBonus = (word.length - 3).coerceAtLeast(0) * 5
         val comboBonus = (combo - 1) * 5
         val timeBonus = if (System.currentTimeMillis() - levelStartTime < 45000) 10 else 0
@@ -383,6 +484,7 @@ class MainActivity : Activity() {
         coins += 5 + (word.length / 4)
         selectedCells.clear()
         Toast.makeText(this, "🎉 $word bulundu! +$earned puan  •  🔥 Seri x$combo", Toast.LENGTH_SHORT).show()
+        updateAchievements()
         if (found.size == p.words.size) {
             val elapsed = System.currentTimeMillis() - levelStartTime
             val stars = when {
@@ -395,10 +497,18 @@ class MainActivity : Activity() {
             coins += 15 + stars * 5
 
             val completedLevel = level
+            val newCompleted = if (prefs.getBoolean("completed_$completedLevel", false)) {
+                completedLevels()
+            } else {
+                prefs.edit().putBoolean("completed_$completedLevel", true).apply()
+                completedLevels() + 1
+            }
+            prefs.edit().putInt("completedLevels", newCompleted).apply()
             if (level >= maxUnlocked && level < 100) maxUnlocked = level + 1
             val nextLevel = (level + 1).coerceAtMost(100)
             level = nextLevel
             save()
+            updateAchievements()
             val starsLine = "⭐".repeat(stars)
             val bestLine = if (stars > oldStars) "\nYeni rekor!" else ""
             AlertDialog.Builder(this)

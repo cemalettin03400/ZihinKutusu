@@ -40,3 +40,7 @@ Türkçe karakterler: Ç, Ğ, İ, I, Ö, Ş, Ü ve ı/i ayrımı korunur. Kelime
 - Yıldızlar cihazda kaydedilir ve bölüm listesinde görünür.
 - Önceki bölümler tekrar oynanabilir; ilerleme kilitlenmez.
 - Mevcut Türkçe karakter, kaydırarak kelime seçme, puan, altın, can, ipucu ve çıkış özellikleri korunur.
+
+
+## Zihin Kutusu 7.0
+Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başarı ödülleri eklendi.
