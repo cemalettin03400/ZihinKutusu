@@ -26,8 +26,17 @@ Reklam kimlikleri şu an Google'ın TEST reklam kimlikleridir. Play Store'a çı
 
 Türkçe karakterler: Ç, Ğ, İ, I, Ö, Ş, Ü ve ı/i ayrımı korunur. Kelime sayısı bölüm ilerledikçe 4, 5, 6 ve 7 kelimeye çıkar.
 
-## Zihin Kutusu 5.4
+## Zihin Kutusu 6.0
 - Parmağı kaydırarak komşu ve çapraz harfleri seçme
 - Kelimeyi parmak kaldırınca otomatik kontrol etme
 - Uzun kelime, seri ve hızlı çözüm puan bonusları
 - Türkçe karakter desteği: Ç, Ğ, İ, Ö, Ş, Ü
+
+
+## Zihin Kutusu 6.0
+- Ana menü yenilendi.
+- 100 bölümlük bölüm seçme ekranında açılan bölümler gösterilir.
+- Bölüm tamamlamaya göre 1, 2 veya 3 yıldız kazanılır.
+- Yıldızlar cihazda kaydedilir ve bölüm listesinde görünür.
+- Önceki bölümler tekrar oynanabilir; ilerleme kilitlenmez.
+- Mevcut Türkçe karakter, kaydırarak kelime seçme, puan, altın, can, ipucu ve çıkış özellikleri korunur.

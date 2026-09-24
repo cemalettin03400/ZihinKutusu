@@ -29,6 +29,7 @@ class MainActivity : Activity() {
     private lateinit var infoText: TextView
     private lateinit var livesText: TextView
     private var level = 1
+    private var maxUnlocked = 1
     private var score = 0
     private var coins = 50
     private var lives = 5
@@ -37,6 +38,7 @@ class MainActivity : Activity() {
     private var currentPuzzle: WordPuzzle? = null
     private var hintCell = -1
     private var combo = 0
+    private var wrongAttempts = 0
     private var levelStartTime = 0L
 
     private val prefs by lazy { getSharedPreferences("game", 0) }
@@ -88,7 +90,8 @@ class MainActivity : Activity() {
     }
 
     private fun load() {
-        level = prefs.getInt("level", 1).coerceIn(1, 100)
+        maxUnlocked = prefs.getInt("maxUnlocked", prefs.getInt("level", 1)).coerceIn(1, 100)
+        level = prefs.getInt("currentLevel", maxUnlocked).coerceIn(1, maxUnlocked)
         score = prefs.getInt("score", 0)
         coins = prefs.getInt("coins", 50)
         lives = prefs.getInt("lives", 5)
@@ -96,7 +99,7 @@ class MainActivity : Activity() {
     }
 
     private fun save() {
-        prefs.edit().putInt("level", level).putInt("score", score).putInt("coins", coins).putInt("lives", lives).putInt("combo", combo).apply()
+        prefs.edit().putInt("level", maxUnlocked).putInt("maxUnlocked", maxUnlocked).putInt("currentLevel", level).putInt("score", score).putInt("coins", coins).putInt("lives", lives).putInt("combo", combo).apply()
     }
 
     private fun base(): LinearLayout = LinearLayout(this).apply {
@@ -153,7 +156,7 @@ class MainActivity : Activity() {
         }, LinearLayout.LayoutParams(-1, dp(42)))
 
         val stats = TextView(this).apply {
-            text = "⭐ $score puan     🪙 $coins altın     ❤️ $lives can"
+            text = "🏆 $score puan     🪙 $coins altın     ❤️ $lives can"
             textSize = 15f
             gravity = Gravity.CENTER
             typeface = Typeface.DEFAULT_BOLD
@@ -182,7 +185,7 @@ class MainActivity : Activity() {
         root = base()
         root.addView(title("🗺️ BÖLÜMLER", 28f), LinearLayout.LayoutParams(-1, dp(55)))
         root.addView(TextView(this).apply {
-            text = "Açılan bölümler: 1 - $level"
+            text = "Açılan bölümler: 1 - $maxUnlocked"
             gravity = Gravity.CENTER
             textSize = 14f
             setTextColor(Color.DKGRAY)
@@ -191,8 +194,10 @@ class MainActivity : Activity() {
         val scroll = ScrollView(this)
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         for (i in 1..100) {
-            val unlocked = i <= level
-            val b = gameButton("${if (unlocked) "🔓" else "🔒"}  Bölüm $i ${if (i < level) "✓" else ""}") {
+            val unlocked = i <= maxUnlocked
+            val stars = getStars(i)
+            val starText = if (stars > 0) "  ${"⭐".repeat(stars)}" else if (i < maxUnlocked) "  ✓" else ""
+            val b = gameButton("${if (unlocked) "🔓" else "🔒"}  Bölüm $i$starText") {
                 if (unlocked) {
                     level = i
                     save()
@@ -231,6 +236,7 @@ class MainActivity : Activity() {
         selectedCells = mutableListOf()
         hintCell = -1
         combo = 0
+        wrongAttempts = 0
         levelStartTime = System.currentTimeMillis()
         currentPuzzle = createPuzzle(level)
         root = base()
@@ -297,7 +303,7 @@ class MainActivity : Activity() {
 
     private fun renderPuzzle() {
         val p = currentPuzzle ?: return
-        infoText.text = "Bölüm $level   •   ⭐ $score   •   🪙 $coins"
+        infoText.text = "Bölüm $level   •   🏆 $score   •   🪙 $coins"
         livesText.text = "❤️ $lives can   •   Bulunan ${found.size}/${p.words.size}"
         wordListBox.removeAllViews()
         p.words.forEach { word ->
@@ -350,6 +356,7 @@ class MainActivity : Activity() {
             acceptWord(selected)
         } else {
             combo = 0
+            wrongAttempts++
             lives = (lives - 1).coerceAtLeast(0)
             selectedCells.clear()
             save()
@@ -377,14 +384,29 @@ class MainActivity : Activity() {
         selectedCells.clear()
         Toast.makeText(this, "🎉 $word bulundu! +$earned puan  •  🔥 Seri x$combo", Toast.LENGTH_SHORT).show()
         if (found.size == p.words.size) {
-            level = (level + 1).coerceAtMost(100)
-            coins += 15
+            val elapsed = System.currentTimeMillis() - levelStartTime
+            val stars = when {
+                wrongAttempts == 0 && elapsed <= 45000 -> 3
+                wrongAttempts <= 1 && elapsed <= 90000 -> 2
+                else -> 1
+            }
+            val oldStars = getStars(level)
+            if (stars > oldStars) prefs.edit().putInt("stars_$level", stars).apply()
+            coins += 15 + stars * 5
+
+            val completedLevel = level
+            if (level >= maxUnlocked && level < 100) maxUnlocked = level + 1
+            val nextLevel = (level + 1).coerceAtMost(100)
+            level = nextLevel
             save()
+            val starsLine = "⭐".repeat(stars)
+            val bestLine = if (stars > oldStars) "\nYeni rekor!" else ""
             AlertDialog.Builder(this)
                 .setTitle("🏆 Bölüm Tamamlandı!")
-                .setMessage("Tebrikler! +15 bonus altın\n\nSıradaki bölüm: $level")
+                .setMessage("Bölüm $completedLevel\n$starsLine\n\n+$stars × 5 bonus altın$bestLine\n\nSıradaki bölüm: $level")
                 .setPositiveButton("DEVAM ET") { _, _ -> startGame() }
-                .setNegativeButton("MENÜ") { _, _ -> showMenu() }
+                .setNegativeButton("BÖLÜMLER") { _, _ -> showLevels() }
+                .setNeutralButton("MENÜ") { _, _ -> showMenu() }
                 .setCancelable(false).show()
         } else {
             renderPuzzle()
@@ -407,6 +429,7 @@ class MainActivity : Activity() {
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
+            wrongAttempts++
             lives--
             selectedCells.clear()
             save()
@@ -436,6 +459,9 @@ class MainActivity : Activity() {
             Toast.makeText(this, "💡 İpucu: Sarı harf, ${target.first()} ile başlayan kelimenin ilk harfi.", Toast.LENGTH_LONG).show()
         }
     }
+
+    private fun getStars(levelNumber: Int): Int =
+        prefs.getInt("stars_$levelNumber", 0).coerceIn(0, 3)
 
     private fun createPuzzle(level: Int): WordPuzzle {
         val base = wordBank[(level - 1) % wordBank.size]
