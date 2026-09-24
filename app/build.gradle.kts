@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace="com.example.zihinkutusu"
-    compileSdk=35
+    compileSdk=36
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -14,9 +14,9 @@ android {
     defaultConfig {
         applicationId="com.example.zihinkutusu"
         minSdk=23
-        targetSdk=35
-        versionCode=6
-        versionName="6.0"
+        targetSdk=36
+        versionCode=9
+        versionName="9.0"
     }
 }
 
