@@ -42,5 +42,13 @@ Türkçe karakterler: Ç, Ğ, İ, I, Ö, Ş, Ü ve ı/i ayrımı korunur. Kelime
 - Mevcut Türkçe karakter, kaydırarak kelime seçme, puan, altın, can, ipucu ve çıkış özellikleri korunur.
 
 
-## Zihin Kutusu 7.0
+## Zihin Kutusu 8.0
 Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başarı ödülleri eklendi.
+
+
+## 8.0 Yenilikleri
+- Ses ve titreşim geri bildirimleri
+- Ayarlar ekranı
+- Dokunmatik yanlış seçimlerde can/puan cezası kaldırıldı
+- Kaydırma yönü sabitlendi; yanlışlıkla farklı yöne geçişler engellendi
+- Doğru/yanlış seçim geri bildirimi

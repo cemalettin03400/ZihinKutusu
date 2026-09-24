@@ -8,6 +8,9 @@ import android.graphics.Paint
 import android.view.MotionEvent
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.os.Vibrator
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -40,6 +43,9 @@ class MainActivity : Activity() {
     private var combo = 0
     private var wrongAttempts = 0
     private var levelStartTime = 0L
+    private var soundEnabled = true
+    private var vibrationEnabled = true
+    private var toneGenerator: ToneGenerator? = null
 
     private val prefs by lazy { getSharedPreferences("game", 0) }
 
@@ -84,6 +90,12 @@ class MainActivity : Activity() {
         showMenu()
     }
 
+    override fun onDestroy() {
+        toneGenerator?.release()
+        toneGenerator = null
+        super.onDestroy()
+    }
+
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         showMenu()
@@ -96,6 +108,9 @@ class MainActivity : Activity() {
         coins = prefs.getInt("coins", 50)
         lives = prefs.getInt("lives", 5)
         combo = prefs.getInt("combo", 0)
+        soundEnabled = prefs.getBoolean("soundEnabled", true)
+        vibrationEnabled = prefs.getBoolean("vibrationEnabled", true)
+        toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 80)
     }
 
     private fun save() {
@@ -177,6 +192,59 @@ class MainActivity : Activity() {
         if (completed >= 100) unlockAchievement("hundred_levels", "100 Bölüm", 200)
         if (comboNow >= 5) unlockAchievement("combo_five", "5'li Seri", 25)
         if (comboNow >= 10) unlockAchievement("combo_ten", "10'lu Seri", 60)
+    }
+
+    private fun playFeedback(success: Boolean) {
+        if (soundEnabled) {
+            try {
+                toneGenerator?.startTone(if (success) ToneGenerator.TONE_PROP_ACK else ToneGenerator.TONE_PROP_NACK, 120)
+            } catch (_: Exception) {}
+        }
+        if (vibrationEnabled) {
+            try {
+                val vibrator = getSystemService(VIBRATOR_SERVICE) as Vibrator
+                @Suppress("DEPRECATION") vibrator.vibrate(if (success) 45L else 70L)
+            } catch (_: Exception) {}
+        }
+    }
+
+    private fun showSettings() {
+        root = base()
+        root.addView(title("⚙️ AYARLAR", 28f), LinearLayout.LayoutParams(-1, dp(55)))
+        val sound = Switch(this).apply {
+            text = "🔊 Sesler"
+            textSize = 18f
+            isChecked = soundEnabled
+            setPadding(dp(12), 0, dp(12), 0)
+            setOnCheckedChangeListener { _, checked ->
+                soundEnabled = checked
+                prefs.edit().putBoolean("soundEnabled", checked).apply()
+                if (checked) playFeedback(true)
+            }
+        }
+        root.addView(sound, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, dp(8), 0, dp(6)) })
+        val vibration = Switch(this).apply {
+            text = "📳 Titreşim"
+            textSize = 18f
+            isChecked = vibrationEnabled
+            setPadding(dp(12), 0, dp(12), 0)
+            setOnCheckedChangeListener { _, checked ->
+                vibrationEnabled = checked
+                prefs.edit().putBoolean("vibrationEnabled", checked).apply()
+                if (checked) playFeedback(true)
+            }
+        }
+        root.addView(vibration, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(TextView(this).apply {
+            text = "Yanlışlıkla bir harfe dokunup kelimeyi tamamlamadığında artık can veya puan kaybetmezsin. Geçersiz seçim sadece temizlenir."
+            textSize = 15f
+            gravity = Gravity.CENTER
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            setTextColor(Color.DKGRAY)
+            background = rounded(Color.WHITE, 16f)
+        }, LinearLayout.LayoutParams(-1, dp(110)).apply { setMargins(0, 0, 0, dp(10)) })
+        root.addView(gameButton("← ANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(-1, dp(52)))
+        setContentView(root)
     }
 
     private fun showAchievements() {
@@ -262,6 +330,7 @@ class MainActivity : Activity() {
         infoRow.addView(gameButton("📊\nİSTATİSTİK") { showStats() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(dp(4), 0, 0, dp(8)) })
         root.addView(infoRow)
 
+        root.addView(gameButton("⚙️  AYARLAR" ) { showSettings() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("❓  NASIL OYNANIR?" ) { help() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("🚪  ÇIKIŞ" ) { exitGame() }, LinearLayout.LayoutParams(-1, dp(58)))
 
@@ -427,6 +496,9 @@ class MainActivity : Activity() {
         }
     }
 
+    private var swipeDr = 0
+    private var swipeDc = 0
+
     private fun selectCell(index: Int) {
         if (selectedCells.contains(index)) return
         if (selectedCells.size >= 12) return
@@ -435,7 +507,17 @@ class MainActivity : Activity() {
             val last = selectedCells.last()
             val lr = last / 8; val lc = last % 8
             val r = index / 8; val c = index % 8
-            if (kotlin.math.abs(lr - r) > 1 || kotlin.math.abs(lc - c) > 1) return
+            val dr = r - lr; val dc = c - lc
+            if (dr !in -1..1 || dc !in -1..1 || (dr == 0 && dc == 0)) return
+            if (selectedCells.size == 1) {
+                swipeDr = dr
+                swipeDc = dc
+            } else if (dr != swipeDr || dc != swipeDc) {
+                return
+            }
+        } else {
+            swipeDr = 0
+            swipeDc = 0
         }
         selectedCells.add(index)
         hintCell = -1
@@ -450,13 +532,12 @@ class MainActivity : Activity() {
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
-            combo = 0
-            wrongAttempts++
-            lives = (lives - 1).coerceAtLeast(0)
+            // Dokunmatik ekranda yanlışlıkla yapılan seçimler artık ceza vermez.
+            // Sadece seçimi temizleyip oyuncunun devam etmesine izin veriyoruz.
             selectedCells.clear()
-            save()
-            if (lives == 0) Toast.makeText(this, "❤️ Canın bitti! İpucu kullanabilir veya oyuna devam edebilirsin.", Toast.LENGTH_SHORT).show()
-            else Toast.makeText(this, "❌ "+selected+" kelime listesinde yok. -1 can", Toast.LENGTH_SHORT).show()
+            swipeDr = 0
+            swipeDc = 0
+            playFeedback(false)
             renderPuzzle()
         }
     }
@@ -483,6 +564,7 @@ class MainActivity : Activity() {
         score += earned
         coins += 5 + (word.length / 4)
         selectedCells.clear()
+        playFeedback(true)
         Toast.makeText(this, "🎉 $word bulundu! +$earned puan  •  🔥 Seri x$combo", Toast.LENGTH_SHORT).show()
         updateAchievements()
         if (found.size == p.words.size) {
@@ -525,6 +607,8 @@ class MainActivity : Activity() {
 
     private fun clearSelection() {
         selectedCells.clear()
+        swipeDr = 0
+        swipeDc = 0
         hintCell = -1
         renderPuzzle()
     }
@@ -539,16 +623,10 @@ class MainActivity : Activity() {
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
-            wrongAttempts++
-            lives--
             selectedCells.clear()
-            save()
-            if (lives <= 0) {
-                Toast.makeText(this, "❤️ Canların bitti. 20 altın karşılığı 1 can alabilirsin.", Toast.LENGTH_LONG).show()
-                lives = 0
-            } else {
-                Toast.makeText(this, "❌ Bu kelime listede yok. -1 can", Toast.LENGTH_SHORT).show()
-            }
+            swipeDr = 0
+            swipeDc = 0
+            playFeedback(false)
             renderPuzzle()
         }
     }
@@ -694,7 +772,7 @@ class MainActivity : Activity() {
             val p=puzzle ?: return true
             when(event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    selectedCells.clear(); active=true; addFromPoint(event.x,event.y); hintCell=-1; invalidate(); updateSelectionText(); return true
+                    selectedCells.clear(); swipeDr=0; swipeDc=0; active=true; addFromPoint(event.x,event.y); hintCell=-1; invalidate(); updateSelectionText(); return true
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if(active) { addFromPoint(event.x,event.y); invalidate(); updateSelectionText() }; return true
