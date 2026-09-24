@@ -1,23 +1,21 @@
-# Zihin Kutusu 3.0
-Play Store'a hazırlanabilecek geliştirilmiş Android bulmaca oyunu.
+# Zihin Kutusu 4.0
 
-Eklenenler:
-- Ana menü
-- 100 bölümlük bölüm seçme ekranı
-- Bölüm kilitleri
-- Puan, altın, can ve ipucu sistemi
-- İlerleme kaydı
-- Animasyonlu kutular
-- Uygulama ikonu
-- AdMob SDK ve TEST banner reklam alanı
-- Nasıl oynanır ekranı
-- Portre telefon tasarımı
+Kelime bulmaca tarzında Android oyun.
 
-ÖNEMLİ:
-Manifest ve kod içindeki AdMob kimlikleri Google'ın TEST kimlikleridir.
-Gerçek Play Store yayını öncesinde kendi AdMob App ID ve reklam birimi ID'lerinizi ekleyin.
-Reklam gelirinin oluşması için gerçek AdMob hesabı ve doğrulama gerekir.
+## Oyun
+- 100 bölüm
+- 8x8 harf bulmacası
+- Her bölümde 3-4 gizli kelime
+- Harflere sırayla dokunarak kelime oluşturma
+- Puan, altın ve can sistemi
+- İpucu sistemi
+- Bölüm ilerlemesi cihazda kaydedilir
+- Google test banner reklamı
 
-Android Studio:
-Build > Generate Signed App Bundle / APK > Android App Bundle
-ile imzalı AAB oluşturup Google Play Console'a yükleyin.
+## GitHub Actions
+`.github/workflows/build.yml` dosyası ile GitHub Actions üzerinden APK ve AAB üretilebilir.
+
+APK: `app-debug.apk`
+AAB: `app-release.aab`
+
+Reklam kimlikleri şu an Google'ın TEST reklam kimlikleridir. Play Store'a çıkmadan önce kendi AdMob kimliklerin kullanılmalıdır.
