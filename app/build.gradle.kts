@@ -12,22 +12,32 @@ plugins {
 }
 
 android {
+signingConfigs {
+    create("release") {
+        val keystoreBase64 = System.getenv("KEYSTORE_BASE64")
+
+        if (!keystoreBase64.isNullOrBlank()) {
+            val keystoreFile = layout.buildDirectory.file("release-signing.jks").get().asFile
+            keystoreFile.parentFile.mkdirs()
+
+            keystoreFile.writeBytes(
+                java.util.Base64.getDecoder().decode(keystoreBase64)
+            )
+
+            storeFile = keystoreFile
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: "zihinkutusu"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+        }
+    }
+}
     buildTypes {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
         }
     }
 
-    signingConfigs {
-        create("release") {
-            if (keystorePropertiesFile.exists()) {
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            }
-        }
-    }
+
 
     namespace="com.example.zihinkutusu"
     compileSdk=36
