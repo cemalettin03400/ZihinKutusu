@@ -1,6 +1,7 @@
 package com.example.zihinkutusu
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
