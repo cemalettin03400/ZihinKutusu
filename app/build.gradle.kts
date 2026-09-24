@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.util.Base64
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -21,7 +22,7 @@ signingConfigs {
             keystoreFile.parentFile.mkdirs()
 
             keystoreFile.writeBytes(
-                java.util.Base64.getDecoder().decode(keystoreBase64)
+                Base64.getDecoder().decode(keystoreBase64)
             )
 
             storeFile = keystoreFile
