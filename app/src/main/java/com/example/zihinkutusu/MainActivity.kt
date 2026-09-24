@@ -37,24 +37,25 @@ class MainActivity : Activity() {
 
     private val prefs by lazy { getSharedPreferences("game", 0) }
 
+    // Türkçe karakterler özellikle korunur: Ç Ğ İ Ö Ş Ü ve ı/i ayrımı önemlidir.
     private val wordBank = listOf(
-        listOf("KALEM", "KITAP", "OKUL"),
+        listOf("KALEM", "KİTAP", "OKUL"),
         listOf("MASA", "KAPI", "SAAT"),
         listOf("ELMA", "ARMUT", "MUZ"),
-        listOf("DENIZ", "GUNES", "BULUT"),
-        listOf("KEDI", "KOPEK", "KUS"),
-        listOf("ARABA", "YOL", "KOPRU"),
-        listOf("EV", "ODA", "BAHCE"),
+        listOf("DENİZ", "GÜNEŞ", "BULUT"),
+        listOf("KEDİ", "KÖPEK", "KUŞ"),
+        listOf("ARABA", "YOL", "KÖPRÜ"),
+        listOf("EV", "ODA", "BAHÇE"),
         listOf("ÇAY", "KAHVE", "EKMEK"),
-        listOf("ANNE", "BABA", "AILE"),
-        listOf("MUTLU", "SEVGI", "DOST"),
-        listOf("KALEM", "DEFTER", "SILGI"),
+        listOf("ANNE", "BABA", "AİLE"),
+        listOf("MUTLU", "SEVGİ", "DOST"),
+        listOf("KALEM", "DEFTER", "SİLGİ"),
         listOf("TELEFON", "EKRAN", "MESAJ"),
-        listOf("KIRMIZI", "MAVI", "YESIL"),
+        listOf("KIRMIZI", "MAVİ", "YEŞİL"),
         listOf("KIŞ", "BAHAR", "YAZ"),
-        listOf("SABAH", "AKSAM", "GECE"),
+        listOf("SABAH", "AKŞAM", "GECE"),
         listOf("TATLI", "TUZLU", "EKŞİ"),
-        listOf("BILGI", "ZEKA", "SORU"),
+        listOf("BİLGİ", "ZEKÂ", "SORU"),
         listOf("OYUN", "KAZAN", "PUAN"),
         listOf("ALTIN", "PARA", "KASA"),
         listOf("HIZLI", "DİKKAT", "AKIL")
@@ -188,7 +189,7 @@ class MainActivity : Activity() {
     private fun help() {
         AlertDialog.Builder(this)
             .setTitle("🔎 Nasıl Oynanır?")
-            .setMessage("1. Üstte istenen kelimeleri gör.\n\n2. Bulmacadaki harflere sırayla dokun.\n\n3. Kelimeyi tamamlayınca KELİMEYİ BUL butonuna bas.\n\n4. Doğru kelime +20 puan ve +5 altın verir.\n\n5. İpucu 10 altın karşılığında bir kelimenin ilk harfini gösterir.\n\nTüm kelimeleri bulunca bölüm tamamlanır.")
+            .setMessage("1. Üstte istenen kelimeleri gör.\n\n2. Harfleri yan yana veya çapraz komşu olacak şekilde sırayla seç.\n\n3. Kelime tamamlandığında oyun otomatik olarak bulur; BUL butonu da kullanılabilir.\n\n4. Doğru kelime +20 puan ve +5 altın verir.\n\n5. İpucu 10 altın karşılığında bir kelimenin ilk harfini gösterir.\n\nTüm kelimeleri bulunca bölüm tamamlanır.")
             .setPositiveButton("TAMAM", null).show()
     }
 
@@ -312,9 +313,51 @@ class MainActivity : Activity() {
     private fun selectCell(index: Int) {
         if (selectedCells.contains(index)) return
         if (selectedCells.size >= 12) return
+
+        // Kelime seçimi gerçek kelime bulmaca mantığında komşu hücrelerden ilerler.
+        if (selectedCells.isNotEmpty()) {
+            val last = selectedCells.last()
+            val lr = last / 8
+            val lc = last % 8
+            val r = index / 8
+            val c = index % 8
+            if (kotlin.math.abs(lr - r) > 1 || kotlin.math.abs(lc - c) > 1) {
+                Toast.makeText(this, "Harfleri yan yana veya çapraz seç.", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
+
         selectedCells.add(index)
         hintCell = -1
-        renderPuzzle()
+        val p = currentPuzzle ?: return
+        val selected = selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }
+        if (p.words.contains(selected) && !found.contains(selected)) {
+            acceptWord(selected)
+        } else {
+            renderPuzzle()
+        }
+    }
+
+    private fun acceptWord(word: String) {
+        val p = currentPuzzle ?: return
+        found.add(word)
+        score += 20
+        coins += 5
+        selectedCells.clear()
+        Toast.makeText(this, "🎉 $word bulundu! +20 puan +5 altın", Toast.LENGTH_SHORT).show()
+        if (found.size == p.words.size) {
+            level = (level + 1).coerceAtMost(100)
+            coins += 15
+            save()
+            AlertDialog.Builder(this)
+                .setTitle("🏆 Bölüm Tamamlandı!")
+                .setMessage("Tebrikler! +15 bonus altın\n\nSıradaki bölüm: $level")
+                .setPositiveButton("DEVAM ET") { _, _ -> startGame() }
+                .setNegativeButton("MENÜ") { _, _ -> showMenu() }
+                .setCancelable(false).show()
+        } else {
+            renderPuzzle()
+        }
     }
 
     private fun clearSelection() {
@@ -331,24 +374,7 @@ class MainActivity : Activity() {
         }
         val selected = selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }
         if (p.words.contains(selected) && !found.contains(selected)) {
-            found.add(selected)
-            score += 20
-            coins += 5
-            selectedCells.clear()
-            Toast.makeText(this, "🎉 Doğru! +20 puan +5 altın", Toast.LENGTH_SHORT).show()
-            if (found.size == p.words.size) {
-                level = (level + 1).coerceAtMost(100)
-                coins += 15
-                save()
-                AlertDialog.Builder(this)
-                    .setTitle("🏆 Bölüm Tamamlandı!")
-                    .setMessage("Tebrikler! +15 bonus altın\n\nSıradaki bölüm: $level")
-                    .setPositiveButton("DEVAM ET") { _, _ -> startGame() }
-                    .setNegativeButton("MENÜ") { _, _ -> showMenu() }
-                    .setCancelable(false).show()
-                return
-            }
-            renderPuzzle()
+            acceptWord(selected)
         } else {
             lives--
             selectedCells.clear()

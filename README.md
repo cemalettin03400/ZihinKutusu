@@ -1,4 +1,4 @@
-# Zihin Kutusu 4.0
+# Zihin Kutusu 5.0
 
 Kelime bulmaca tarzında Android oyun.
 
