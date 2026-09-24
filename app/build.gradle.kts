@@ -22,7 +22,7 @@ signingConfigs {
             keystoreFile.parentFile.mkdirs()
 
             keystoreFile.writeBytes(
-                Base64.getDecoder().decode(keystoreBase64)
+                Base64.getMimeDecoder().decode(keystoreBase64)
             )
 
             storeFile = keystoreFile
