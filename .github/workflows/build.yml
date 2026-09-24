@@ -40,8 +40,14 @@ jobs:
           gradle-version: '8.10.2'
 
       - name: AAB oluştur
+  env:
+    KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: |
+    ./gradlew :app:bundleRelease
         run: |
-          gradle :app:bundleRelease
 
       - name: APK oluştur
         run: |
