@@ -14,7 +14,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
-import kotlin.math.max
 import kotlin.random.Random
 
 data class WordPuzzle(val words: List<String>, val grid: Array<CharArray>)
@@ -39,32 +38,47 @@ class MainActivity : Activity() {
 
     // Türkçe karakterler özellikle korunur: Ç Ğ İ Ö Ş Ü ve ı/i ayrımı önemlidir.
     private val wordBank = listOf(
-        listOf("KALEM", "KİTAP", "OKUL"),
-        listOf("MASA", "KAPI", "SAAT"),
-        listOf("ELMA", "ARMUT", "MUZ"),
-        listOf("DENİZ", "GÜNEŞ", "BULUT"),
-        listOf("KEDİ", "KÖPEK", "KUŞ"),
-        listOf("ARABA", "YOL", "KÖPRÜ"),
-        listOf("EV", "ODA", "BAHÇE"),
-        listOf("ÇAY", "KAHVE", "EKMEK"),
-        listOf("ANNE", "BABA", "AİLE"),
-        listOf("MUTLU", "SEVGİ", "DOST"),
-        listOf("KALEM", "DEFTER", "SİLGİ"),
-        listOf("TELEFON", "EKRAN", "MESAJ"),
-        listOf("KIRMIZI", "MAVİ", "YEŞİL"),
-        listOf("KIŞ", "BAHAR", "YAZ"),
-        listOf("SABAH", "AKŞAM", "GECE"),
-        listOf("TATLI", "TUZLU", "EKŞİ"),
-        listOf("BİLGİ", "ZEKÂ", "SORU"),
-        listOf("OYUN", "KAZAN", "PUAN"),
-        listOf("ALTIN", "PARA", "KASA"),
-        listOf("HIZLI", "DİKKAT", "AKIL")
+        listOf("KALEM", "KİTAP", "OKUL", "DEFTER", "SİLGİ", "ÇANTA"),
+        listOf("MASA", "KAPI", "SAAT", "ODA", "DUVAR", "KOLTUK"),
+        listOf("ELMA", "ARMUT", "MUZ", "KİRAZ", "ŞEFTALİ", "ERİK"),
+        listOf("DENİZ", "GÜNEŞ", "BULUT", "YAĞMUR", "RÜZGÂR", "DÜNYA"),
+        listOf("KEDİ", "KÖPEK", "KUŞ", "BALIK", "TAVŞAN", "KELEBEK"),
+        listOf("ARABA", "YOL", "KÖPRÜ", "TREN", "GEMİ", "UÇAK"),
+        listOf("EV", "ODA", "BAHÇE", "BALKON", "ÇATI", "KAPI"),
+        listOf("ÇAY", "KAHVE", "EKMEK", "PEYNİR", "ZEYTİN", "ÇORBA"),
+        listOf("ANNE", "BABA", "AİLE", "KARDEŞ", "DEDE", "NİNE"),
+        listOf("MUTLU", "SEVGİ", "DOST", "GÜLÜMSE", "NEŞE", "UMUT"),
+        listOf("TELEFON", "EKRAN", "MESAJ", "KAMERA", "İNTERNET", "ŞARJ"),
+        listOf("KIRMIZI", "MAVİ", "YEŞİL", "SARI", "TURUNCU", "MOR"),
+        listOf("KIŞ", "BAHAR", "YAZ", "SONBAHAR", "KAR", "ÇİÇEK"),
+        listOf("SABAH", "AKŞAM", "GECE", "ÖĞLE", "BUGÜN", "YARIN"),
+        listOf("TATLI", "TUZLU", "EKŞİ", "ACI", "LEZZET", "ŞEKER"),
+        listOf("BİLGİ", "ZEKÂ", "SORU", "CEVAP", "DÜŞÜNCE", "AKIL"),
+        listOf("OYUN", "KAZAN", "PUAN", "BÖLÜM", "HEDEF", "BAŞARI"),
+        listOf("ALTIN", "PARA", "KASA", "HAZİNE", "KUPA", "ÖDÜL"),
+        listOf("HIZLI", "DİKKAT", "AKIL", "ZEKA", "BECERİ", "KARAR"),
+        listOf("KİTAP", "HİKÂYE", "ROMAN", "ŞİİR", "YAZAR", "OKUMAK"),
+        listOf("DAĞ", "OVA", "GÖL", "NEHİR", "ORMAN", "TEPE"),
+        listOf("ÇİÇEK", "AĞAÇ", "YAPRAK", "DAL", "KÖK", "MEYVE"),
+        listOf("MÜZİK", "ŞARKI", "SES", "RİTİM", "SAZ", "DAVUL"),
+        listOf("FUTBOL", "TOP", "KALE", "GOL", "TAKIM", "MAÇ"),
+        listOf("OKUL", "ÖĞRETMEN", "ÖĞRENCİ", "DERS", "SINIF", "SINAV"),
+        listOf("HASTANE", "DOKTOR", "HEMŞİRE", "İLAÇ", "SAĞLIK", "MUAYENE"),
+        listOf("ŞEHİR", "SOKAK", "CADDE", "PARK", "MEYDAN", "BİNA"),
+        listOf("DENİZ", "KUM", "DALGA", "SAHİL", "GÜNEŞ", "TATİL"),
+        listOf("KÖY", "TARLA", "ÇİFTÇİ", "HAYVAN", "BUĞDAY", "HASAT"),
+        listOf("KELİME", "HARF", "BULMACA", "ZEKA", "OYUN", "ÇÖZÜM")
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         load()
         MobileAds.initialize(this) {}
+        showMenu()
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onBackPressed() {
         showMenu()
     }
 
@@ -144,7 +158,8 @@ class MainActivity : Activity() {
 
         root.addView(gameButton("🎯  OYUNA BAŞLA\nBölüm $level" ) { startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("🗺️  BÖLÜMLER\n1 - 100" ) { showLevels() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
-        root.addView(gameButton("❓  NASIL OYNANIR?" ) { help() }, LinearLayout.LayoutParams(-1, dp(60)))
+        root.addView(gameButton("❓  NASIL OYNANIR?" ) { help() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton("🚪  ÇIKIŞ" ) { exitGame() }, LinearLayout.LayoutParams(-1, dp(58)))
 
         val note = TextView(this).apply {
             text = "Her bölümde gizlenmiş kelimeleri bul.\nHarfleri sırayla seç ve kelimeyi tamamla!"
@@ -165,7 +180,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
             textSize = 14f
             setTextColor(Color.DKGRAY)
-        }, LinearLayout.LayoutParams(-1, dp(32)))
+        }, LinearLayout.LayoutParams(-1, dp(26)))
 
         val scroll = ScrollView(this)
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -186,6 +201,18 @@ class MainActivity : Activity() {
         setContentView(root)
     }
 
+    private fun exitGame() {
+        AlertDialog.Builder(this)
+            .setTitle("🚪 Oyundan Çıkış")
+            .setMessage("Zihin Kutusu'ndan çıkmak istiyor musunuz?")
+            .setNegativeButton("HAYIR", null)
+            .setPositiveButton("EVET") { _, _ ->
+                save()
+                finishAffinity()
+            }
+            .show()
+    }
+
     private fun help() {
         AlertDialog.Builder(this)
             .setTitle("🔎 Nasıl Oynanır?")
@@ -200,10 +227,14 @@ class MainActivity : Activity() {
         currentPuzzle = createPuzzle(level)
         root = base()
 
-        val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
-        top.addView(gameButton("☰") { showMenu() }, LinearLayout.LayoutParams(dp(55), dp(48)))
+        val top = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        top.addView(gameButton("←\nGERİ") { showLevels() }, LinearLayout.LayoutParams(dp(68), dp(44)).apply { setMargins(0, 0, dp(4), 0) })
         infoText = title("Bölüm $level", 18f)
-        top.addView(infoText, LinearLayout.LayoutParams(0, dp(48), 1f))
+        top.addView(infoText, LinearLayout.LayoutParams(0, dp(44), 1f))
+        top.addView(gameButton("⌂\nANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(dp(96), dp(44)).apply { setMargins(dp(4), 0, 0, 0) })
         root.addView(top)
 
         livesText = TextView(this).apply {
@@ -220,13 +251,13 @@ class MainActivity : Activity() {
             textSize = 13f
             typeface = Typeface.DEFAULT_BOLD
             setTextColor(Color.rgb(108, 63, 199))
-        }, LinearLayout.LayoutParams(-1, dp(28)))
+        }, LinearLayout.LayoutParams(-1, dp(24)))
 
         wordListBox = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
         }
-        root.addView(wordListBox, LinearLayout.LayoutParams(-1, dp(45)))
+        root.addView(wordListBox, LinearLayout.LayoutParams(-1, dp(38)))
 
         grid = GridLayout(this).apply { columnCount = 8; rowCount = 8; alignmentMode = GridLayout.ALIGN_BOUNDS }
         root.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(0, dp(4), 0, dp(4)) })
@@ -239,13 +270,19 @@ class MainActivity : Activity() {
             setTextColor(Color.rgb(78, 43, 126))
             background = rounded(Color.WHITE, 14f)
         }
-        root.addView(selectedText, LinearLayout.LayoutParams(-1, dp(42)).apply { setMargins(0, 0, 0, dp(5)) })
+        root.addView(selectedText, LinearLayout.LayoutParams(-1, dp(36)).apply { setMargins(0, 0, 0, dp(4)) })
 
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        bar.addView(gameButton("🧹\nTEMİZLE") { clearSelection() }, LinearLayout.LayoutParams(0, dp(58), 1f).apply { setMargins(0, 0, dp(4), 0) })
-        bar.addView(gameButton("🔎\nBUL") { checkWord() }, LinearLayout.LayoutParams(0, dp(58), 1f).apply { setMargins(dp(4), 0, dp(4), 0) })
-        bar.addView(gameButton("💡\nİPUCU") { hint() }, LinearLayout.LayoutParams(0, dp(58), 1f).apply { setMargins(dp(4), 0, 0, 0) })
+        bar.addView(gameButton("🧹\nTEMİZLE") { clearSelection() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(0, 0, dp(4), 0) })
+        bar.addView(gameButton("🔎\nBUL") { checkWord() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(dp(4), 0, dp(4), 0) })
+        bar.addView(gameButton("💡\nİPUCU") { hint() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(dp(4), 0, 0, 0) })
         root.addView(bar)
+
+        val navigation = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        navigation.addView(gameButton("← OYUNA GERİ DÖN") { startGame() }, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(0, dp(5), dp(4), 0) })
+        navigation.addView(gameButton("⌂ ANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(4), dp(5), dp(4), 0) })
+        navigation.addView(gameButton("🚪 ÇIKIŞ") { exitGame() }, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(dp(4), dp(5), 0, 0) })
+        root.addView(navigation)
         addAd()
         setContentView(root)
         renderPuzzle()
@@ -270,7 +307,7 @@ class MainActivity : Activity() {
         }
 
         grid.removeAllViews()
-        val cellSize = max(dp(34), (resources.displayMetrics.widthPixels - dp(42)) / 8)
+        val cellSize = minOf(dp(38), (resources.displayMetrics.widthPixels - dp(38)) / 8)
         for (i in 0 until 64) {
             val r = i / 8
             val c = i % 8
@@ -408,8 +445,13 @@ class MainActivity : Activity() {
 
     private fun createPuzzle(level: Int): WordPuzzle {
         val base = wordBank[(level - 1) % wordBank.size]
-        val extra = if (level >= 25) 1 else 0
-        val words = (base + if (extra == 1) listOf("AKIL") else emptyList()).distinct().take(4)
+        val count = when {
+            level <= 10 -> 4
+            level <= 30 -> 5
+            level <= 60 -> 6
+            else -> 7
+        }
+        val words = base.distinct().filter { it.length <= 8 }.take(count)
         repeat(200) {
             val grid = Array(8) { CharArray(8) { ' ' } }
             val placements = mutableMapOf<String, List<Int>>()
