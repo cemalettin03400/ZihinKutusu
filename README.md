@@ -42,11 +42,11 @@ Türkçe karakterler: Ç, Ğ, İ, I, Ö, Ş, Ü ve ı/i ayrımı korunur. Kelime
 - Mevcut Türkçe karakter, kaydırarak kelime seçme, puan, altın, can, ipucu ve çıkış özellikleri korunur.
 
 
-## Zihin Kutusu 9.0
+## Zihin Kutusu 10.0
 Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başarı ödülleri eklendi.
 
 
-## 9.0 Yenilikleri
+## 10.0 Yenilikleri
 - Ses ve titreşim geri bildirimleri
 - Ayarlar ekranı
 - Dokunmatik yanlış seçimlerde can/puan cezası kaldırıldı
@@ -57,7 +57,12 @@ Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başar
 ## Google Play hazırlığı
 - compileSdk: 36
 - targetSdk: 36
-- versionName: 9.0
+- versionName: 10.0
 - versionCode: 9
 - Bu sürümdeki AdMob kimlikleri hâlâ Google test kimlikleridir; yayın öncesi gerçek AdMob kimlikleri değiştirilmelidir.
 - AAB yayınlamak için Google Play App Signing / imzalama adımı ayrıca yapılmalıdır.
+
+
+## 10.0 imzalama
+- GitHub Actions release AAB'yi `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` Secrets kullanarak imzalar.
+- Keystore dosyası repoya eklenmemelidir.
