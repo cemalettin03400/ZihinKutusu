@@ -3,6 +3,9 @@ package com.example.zihinkutusu
 import android.app.Activity
 import android.app.AlertDialog
 import android.graphics.Color
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.view.MotionEvent
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -20,7 +23,7 @@ data class WordPuzzle(val words: List<String>, val grid: Array<CharArray>)
 
 class MainActivity : Activity() {
     private lateinit var root: LinearLayout
-    private lateinit var grid: GridLayout
+    private lateinit var grid: WordGridView
     private lateinit var selectedText: TextView
     private lateinit var wordListBox: LinearLayout
     private lateinit var infoText: TextView
@@ -33,6 +36,8 @@ class MainActivity : Activity() {
     private var selectedCells = mutableListOf<Int>()
     private var currentPuzzle: WordPuzzle? = null
     private var hintCell = -1
+    private var combo = 0
+    private var levelStartTime = 0L
 
     private val prefs by lazy { getSharedPreferences("game", 0) }
 
@@ -87,10 +92,11 @@ class MainActivity : Activity() {
         score = prefs.getInt("score", 0)
         coins = prefs.getInt("coins", 50)
         lives = prefs.getInt("lives", 5)
+        combo = prefs.getInt("combo", 0)
     }
 
     private fun save() {
-        prefs.edit().putInt("level", level).putInt("score", score).putInt("coins", coins).putInt("lives", lives).apply()
+        prefs.edit().putInt("level", level).putInt("score", score).putInt("coins", coins).putInt("lives", lives).putInt("combo", combo).apply()
     }
 
     private fun base(): LinearLayout = LinearLayout(this).apply {
@@ -216,7 +222,7 @@ class MainActivity : Activity() {
     private fun help() {
         AlertDialog.Builder(this)
             .setTitle("🔎 Nasıl Oynanır?")
-            .setMessage("1. Üstte istenen kelimeleri gör.\n\n2. Harfleri yan yana veya çapraz komşu olacak şekilde sırayla seç.\n\n3. Kelime tamamlandığında oyun otomatik olarak bulur; BUL butonu da kullanılabilir.\n\n4. Doğru kelime +20 puan ve +5 altın verir.\n\n5. İpucu 10 altın karşılığında bir kelimenin ilk harfini gösterir.\n\nTüm kelimeleri bulunca bölüm tamamlanır.")
+            .setMessage("1. Üstte istenen kelimeleri gör.\n\n2. Parmağını ilk harfin üzerine koy ve kaldırmadan kelimenin harfleri üzerinden kaydır. Yan yana ve çapraz harfler seçilebilir.\n\n3. Parmağını kaldırınca kelime otomatik kontrol edilir.\n\n4. Puan; kelime uzunluğu, arka arkaya bulma serisi ve hızlı çözüm bonusuna göre artar.\n\n5. İpucu 10 altın karşılığında bir kelimenin ilk harfini gösterir.\n\nTüm kelimeleri bulunca bölüm tamamlanır.")
             .setPositiveButton("TAMAM", null).show()
     }
 
@@ -224,6 +230,8 @@ class MainActivity : Activity() {
         found = mutableSetOf()
         selectedCells = mutableListOf()
         hintCell = -1
+        combo = 0
+        levelStartTime = System.currentTimeMillis()
         currentPuzzle = createPuzzle(level)
         root = base()
 
@@ -259,7 +267,7 @@ class MainActivity : Activity() {
         }
         root.addView(wordListBox, LinearLayout.LayoutParams(-1, dp(38)))
 
-        grid = GridLayout(this).apply { columnCount = 8; rowCount = 8; alignmentMode = GridLayout.ALIGN_BOUNDS }
+        grid = WordGridView(this)
         root.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f).apply { setMargins(0, dp(4), 0, dp(4)) })
 
         selectedText = TextView(this).apply {
@@ -274,7 +282,6 @@ class MainActivity : Activity() {
 
         val bar = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         bar.addView(gameButton("🧹\nTEMİZLE") { clearSelection() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(0, 0, dp(4), 0) })
-        bar.addView(gameButton("🔎\nBUL") { checkWord() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(dp(4), 0, dp(4), 0) })
         bar.addView(gameButton("💡\nİPUCU") { hint() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(dp(4), 0, 0, 0) })
         root.addView(bar)
 
@@ -306,36 +313,8 @@ class MainActivity : Activity() {
             wordListBox.addView(t, LinearLayout.LayoutParams(0, dp(38), 1f).apply { setMargins(dp(2), 0, dp(2), 0) })
         }
 
-        grid.removeAllViews()
-        val cellSize = minOf(dp(38), (resources.displayMetrics.widthPixels - dp(38)) / 8)
-        for (i in 0 until 64) {
-            val r = i / 8
-            val c = i % 8
-            val ch = p.grid[r][c]
-            val v = TextView(this).apply {
-                text = ch.toString()
-                textSize = 20f
-                gravity = Gravity.CENTER
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(Color.rgb(48, 35, 60))
-                val bgColor = when {
-                    i == hintCell -> Color.rgb(255, 222, 102)
-                    selectedCells.contains(i) -> Color.rgb(205, 184, 247)
-                    isFoundCell(i) -> Color.rgb(215, 242, 222)
-                    else -> Color.WHITE
-                }
-                background = rounded(bgColor, 10f)
-                elevation = dp(1).toFloat()
-                setOnClickListener { selectCell(i) }
-            }
-            grid.addView(v, GridLayout.LayoutParams().apply {
-                width = cellSize
-                height = cellSize
-                setMargins(dp(2), dp(2), dp(2), dp(2))
-            })
-            val anim = AlphaAnimation(0f, 1f).apply { duration = 120 }
-            v.startAnimation(anim)
-        }
+        grid.setPuzzle(p)
+        grid.invalidate()
         selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }.ifEmpty { "—" }
         save()
     }
@@ -351,37 +330,52 @@ class MainActivity : Activity() {
         if (selectedCells.contains(index)) return
         if (selectedCells.size >= 12) return
 
-        // Kelime seçimi gerçek kelime bulmaca mantığında komşu hücrelerden ilerler.
         if (selectedCells.isNotEmpty()) {
             val last = selectedCells.last()
-            val lr = last / 8
-            val lc = last % 8
-            val r = index / 8
-            val c = index % 8
-            if (kotlin.math.abs(lr - r) > 1 || kotlin.math.abs(lc - c) > 1) {
-                Toast.makeText(this, "Harfleri yan yana veya çapraz seç.", Toast.LENGTH_SHORT).show()
-                return
-            }
+            val lr = last / 8; val lc = last % 8
+            val r = index / 8; val c = index % 8
+            if (kotlin.math.abs(lr - r) > 1 || kotlin.math.abs(lc - c) > 1) return
         }
-
         selectedCells.add(index)
         hintCell = -1
+        updateSelectionText()
+        grid.invalidate()
+    }
+
+    private fun finishSwipeSelection() {
         val p = currentPuzzle ?: return
+        if (selectedCells.isEmpty()) return
         val selected = selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
+            combo = 0
+            lives = (lives - 1).coerceAtLeast(0)
+            selectedCells.clear()
+            save()
+            if (lives == 0) Toast.makeText(this, "❤️ Canın bitti! İpucu kullanabilir veya oyuna devam edebilirsin.", Toast.LENGTH_SHORT).show()
+            else Toast.makeText(this, "❌ "+selected+" kelime listesinde yok. -1 can", Toast.LENGTH_SHORT).show()
             renderPuzzle()
         }
+    }
+
+    private fun updateSelectionText() {
+        val p = currentPuzzle ?: return
+        selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }.ifEmpty { "—" }
     }
 
     private fun acceptWord(word: String) {
         val p = currentPuzzle ?: return
         found.add(word)
-        score += 20
-        coins += 5
+        combo += 1
+        val lengthBonus = (word.length - 3).coerceAtLeast(0) * 5
+        val comboBonus = (combo - 1) * 5
+        val timeBonus = if (System.currentTimeMillis() - levelStartTime < 45000) 10 else 0
+        val earned = 20 + lengthBonus + comboBonus + timeBonus
+        score += earned
+        coins += 5 + (word.length / 4)
         selectedCells.clear()
-        Toast.makeText(this, "🎉 $word bulundu! +20 puan +5 altın", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "🎉 $word bulundu! +$earned puan  •  🔥 Seri x$combo", Toast.LENGTH_SHORT).show()
         if (found.size == p.words.size) {
             level = (level + 1).coerceAtMost(100)
             coins += 15
@@ -526,4 +520,64 @@ class MainActivity : Activity() {
     }
 
     private fun randomLetter(): Char = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".random()
+    private inner class WordGridView(context: android.content.Context) : View(context) {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private var puzzle: WordPuzzle? = null
+        private var cellSize = 0f
+        private var gap = dp(3).toFloat()
+        private var active = false
+
+        fun setPuzzle(p: WordPuzzle) { puzzle = p }
+
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            val p = puzzle ?: return
+            val size = minOf(width, height)
+            cellSize = (size - gap * 7f) / 8f
+            val total = cellSize * 8f + gap * 7f
+            val ox = (width - total) / 2f
+            val oy = (height - total) / 2f
+            paint.textAlign = Paint.Align.CENTER
+            paint.typeface = Typeface.DEFAULT_BOLD
+            for (i in 0 until 64) {
+                val r=i/8; val c=i%8
+                val left=ox+c*(cellSize+gap); val top=oy+r*(cellSize+gap)
+                val selected=selectedCells.contains(i)
+                val foundCell=isFoundCell(i)
+                paint.style=Paint.Style.FILL
+                paint.color=when { i==hintCell -> Color.rgb(255,222,102); selected -> Color.rgb(205,184,247); foundCell -> Color.rgb(215,242,222); else -> Color.WHITE }
+                canvas.drawRoundRect(left,top,left+cellSize,top+cellSize,dp(9).toFloat(),dp(9).toFloat(),paint)
+                paint.color=Color.rgb(48,35,60)
+                paint.textSize=cellSize*0.48f
+                val cy=top+cellSize/2f-(paint.ascent()+paint.descent())/2f
+                canvas.drawText(p.grid[r][c].toString(),left+cellSize/2f,cy,paint)
+            }
+        }
+
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            val p=puzzle ?: return true
+            when(event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    selectedCells.clear(); active=true; addFromPoint(event.x,event.y); hintCell=-1; invalidate(); updateSelectionText(); return true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if(active) { addFromPoint(event.x,event.y); invalidate(); updateSelectionText() }; return true
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if(active) { active=false; finishSwipeSelection() }; return true
+                }
+            }
+            return true
+        }
+
+        private fun addFromPoint(x:Float,y:Float) {
+            val size=minOf(width,height); cellSize=(size-gap*7f)/8f; val total=cellSize*8f+gap*7f; val ox=(width-total)/2f; val oy=(height-total)/2f
+            val c=((x-ox)/(cellSize+gap)).toInt(); val r=((y-oy)/(cellSize+gap)).toInt()
+            if(r !in 0..7 || c !in 0..7) return
+            val localX=(x-ox)-c*(cellSize+gap); val localY=(y-oy)-r*(cellSize+gap)
+            if(localX<0 || localY<0 || localX>cellSize || localY>cellSize) return
+            selectCell(r*8+c)
+        }
+    }
+
 }
