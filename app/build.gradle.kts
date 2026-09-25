@@ -48,7 +48,7 @@ signingConfigs {
     }
     kotlinOptions { jvmTarget = "17" }
     defaultConfig {
-        applicationId="com.example.zihinkutusu"
+        applicationId="com.zihinkutusu.app"
         minSdk=23
         targetSdk=36
         versionCode=9
