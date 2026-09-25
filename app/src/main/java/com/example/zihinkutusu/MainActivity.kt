@@ -25,6 +25,7 @@ import kotlin.random.Random
 data class WordPuzzle(val words: List<String>, val grid: Array<CharArray>)
 
 class MainActivity : Activity() {
+    private companion object { const val GRID_SIZE = 10 }
     private lateinit var root: LinearLayout
     private lateinit var grid: WordGridView
     private lateinit var selectedText: TextView
@@ -485,7 +486,7 @@ class MainActivity : Activity() {
 
         grid.setPuzzle(p)
         grid.invalidate()
-        selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }.ifEmpty { "—" }
+        selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / GRID_SIZE][idx % GRID_SIZE].toString() }.ifEmpty { "—" }
         save()
     }
 
@@ -503,10 +504,11 @@ class MainActivity : Activity() {
         if (selectedCells.contains(index)) return
         if (selectedCells.size >= 12) return
 
+        val p = currentPuzzle ?: return
         if (selectedCells.isNotEmpty()) {
             val last = selectedCells.last()
-            val lr = last / 8; val lc = last % 8
-            val r = index / 8; val c = index % 8
+            val lr = last / GRID_SIZE; val lc = last % GRID_SIZE
+            val r = index / GRID_SIZE; val c = index % GRID_SIZE
             val dr = r - lr; val dc = c - lc
             if (dr !in -1..1 || dc !in -1..1 || (dr == 0 && dc == 0)) return
             if (selectedCells.size == 1) {
@@ -519,6 +521,15 @@ class MainActivity : Activity() {
             swipeDr = 0
             swipeDc = 0
         }
+        val candidateCells = selectedCells + index
+        val candidate = candidateCells.joinToString("") { idx -> p.grid[idx / GRID_SIZE][idx % GRID_SIZE].toString() }
+        val stillPossible = p.words.any { word ->
+            !found.contains(word) && (word.startsWith(candidate) || word.endsWith(candidate.reversed()))
+        }
+        if (!stillPossible) {
+            // Parmak komşu bir kelimeye taşarsa seçim genişlemez. Ceza yok.
+            return
+        }
         selectedCells.add(index)
         hintCell = -1
         updateSelectionText()
@@ -528,7 +539,7 @@ class MainActivity : Activity() {
     private fun finishSwipeSelection() {
         val p = currentPuzzle ?: return
         if (selectedCells.isEmpty()) return
-        val selected = selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }
+        val selected = selectedCells.joinToString("") { idx -> p.grid[idx / GRID_SIZE][idx % GRID_SIZE].toString() }
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
@@ -544,7 +555,7 @@ class MainActivity : Activity() {
 
     private fun updateSelectionText() {
         val p = currentPuzzle ?: return
-        selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }.ifEmpty { "—" }
+        selectedText.text = "Seçilen: " + selectedCells.joinToString("") { idx -> p.grid[idx / GRID_SIZE][idx % GRID_SIZE].toString() }.ifEmpty { "—" }
     }
 
     private fun acceptWord(word: String) {
@@ -619,7 +630,7 @@ class MainActivity : Activity() {
             Toast.makeText(this, "Önce harfleri seç.", Toast.LENGTH_SHORT).show()
             return
         }
-        val selected = selectedCells.joinToString("") { idx -> p.grid[idx / 8][idx % 8].toString() }
+        val selected = selectedCells.joinToString("") { idx -> p.grid[idx / GRID_SIZE][idx % GRID_SIZE].toString() }
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
@@ -654,14 +665,17 @@ class MainActivity : Activity() {
     private fun createPuzzle(level: Int): WordPuzzle {
         val base = wordBank[(level - 1) % wordBank.size]
         val count = when {
-            level <= 10 -> 4
-            level <= 30 -> 5
-            level <= 60 -> 6
-            else -> 7
+            level <= 10 -> 5
+            level <= 30 -> 6
+            level <= 60 -> 7
+            else -> 8
         }
-        val words = base.distinct().filter { it.length <= 8 }.take(count)
+        val words = base.distinct()
+            .filter { it.length in if (level <= 10) 3..7 else 4..8 }
+            .sortedByDescending { it.length }
+            .take(count)
         repeat(200) {
-            val grid = Array(8) { CharArray(8) { ' ' } }
+            val grid = Array(GRID_SIZE) { CharArray(GRID_SIZE) { ' ' } }
             val placements = mutableMapOf<String, List<Int>>()
             val shuffled = words.shuffled(Random(level * 1000 + it))
             var ok = true
@@ -671,15 +685,15 @@ class MainActivity : Activity() {
                 placements[word] = placed
             }
             if (ok) {
-                for (r in 0..7) for (c in 0..7) if (grid[r][c] == ' ') grid[r][c] = randomLetter()
+                for (r in 0 until GRID_SIZE) for (c in 0 until GRID_SIZE) if (grid[r][c] == ' ') grid[r][c] = randomLetter()
                 return WordPuzzle(words, grid)
             }
         }
-        val grid = Array(8) { CharArray(8) { randomLetter() } }
+        val grid = Array(GRID_SIZE) { CharArray(GRID_SIZE) { randomLetter() } }
         var row = 0
         val safeWords = words.filter { it.length <= 8 }
         for (word in safeWords) {
-            if (row >= 8) break
+            if (row >= GRID_SIZE) break
             for (i in word.indices) grid[row][i] = word[i]
             row++
         }
@@ -693,11 +707,11 @@ class MainActivity : Activity() {
         ).shuffled()
         repeat(80) {
             val (dr, dc) = dirs.random()
-            val sr = Random.nextInt(8)
-            val sc = Random.nextInt(8)
+            val sr = Random.nextInt(GRID_SIZE)
+            val sc = Random.nextInt(GRID_SIZE)
             val endR = sr + dr * (word.length - 1)
             val endC = sc + dc * (word.length - 1)
-            if (endR !in 0..7 || endC !in 0..7) return@repeat
+            if (endR !in 0 until GRID_SIZE || endC !in 0 until GRID_SIZE) return@repeat
             var valid = true
             for (k in word.indices) {
                 val r = sr + dr * k; val c = sc + dc * k
@@ -709,7 +723,7 @@ class MainActivity : Activity() {
             for (k in word.indices) {
                 val r = sr + dr * k; val c = sc + dc * k
                 grid[r][c] = word[k]
-                cells.add(r * 8 + c)
+                cells.add(r * GRID_SIZE + c)
             }
             return cells
         }
@@ -718,15 +732,15 @@ class MainActivity : Activity() {
 
     private fun findWordCells(grid: Array<CharArray>, word: String): List<Int> {
         val dirs = listOf(0 to 1, 0 to -1, 1 to 0, -1 to 0, 1 to 1, -1 to -1, 1 to -1, -1 to 1)
-        for (r in 0..7) for (c in 0..7) for ((dr, dc) in dirs) {
+        for (r in 0 until GRID_SIZE) for (c in 0 until GRID_SIZE) for ((dr, dc) in dirs) {
             val endR = r + dr * (word.length - 1); val endC = c + dc * (word.length - 1)
-            if (endR !in 0..7 || endC !in 0..7) continue
+            if (endR !in 0 until GRID_SIZE || endC !in 0 until GRID_SIZE) continue
             val cells = mutableListOf<Int>()
             var ok = true
             for (k in word.indices) {
                 val rr = r + dr * k; val cc = c + dc * k
                 if (grid[rr][cc] != word[k]) { ok = false; break }
-                cells.add(rr * 8 + cc)
+                cells.add(rr * GRID_SIZE + cc)
             }
             if (ok) return cells
         }
@@ -747,14 +761,14 @@ class MainActivity : Activity() {
             super.onDraw(canvas)
             val p = puzzle ?: return
             val size = minOf(width, height)
-            cellSize = (size - gap * 7f) / 8f
-            val total = cellSize * 8f + gap * 7f
+            cellSize = (size - gap * (GRID_SIZE - 1)) / GRID_SIZE
+            val total = cellSize * GRID_SIZE + gap * (GRID_SIZE - 1)
             val ox = (width - total) / 2f
             val oy = (height - total) / 2f
             paint.textAlign = Paint.Align.CENTER
             paint.typeface = Typeface.DEFAULT_BOLD
-            for (i in 0 until 64) {
-                val r=i/8; val c=i%8
+            for (i in 0 until GRID_SIZE * GRID_SIZE) {
+                val r=i/GRID_SIZE; val c=i%GRID_SIZE
                 val left=ox+c*(cellSize+gap); val top=oy+r*(cellSize+gap)
                 val selected=selectedCells.contains(i)
                 val foundCell=isFoundCell(i)
@@ -785,9 +799,9 @@ class MainActivity : Activity() {
         }
 
         private fun addFromPoint(x:Float,y:Float) {
-            val size=minOf(width,height); cellSize=(size-gap*7f)/8f; val total=cellSize*8f+gap*7f; val ox=(width-total)/2f; val oy=(height-total)/2f
+            val size=minOf(width,height); cellSize=(size-gap*(GRID_SIZE-1))/GRID_SIZE; val total=cellSize*GRID_SIZE+gap*(GRID_SIZE-1); val ox=(width-total)/2f; val oy=(height-total)/2f
             val c=((x-ox)/(cellSize+gap)).toInt(); val r=((y-oy)/(cellSize+gap)).toInt()
-            if(r !in 0..7 || c !in 0..7) return
+            if(r !in 0 until GRID_SIZE || c !in 0 until GRID_SIZE) return
             val localX=(x-ox)-c*(cellSize+gap); val localY=(y-oy)-r*(cellSize+gap)
             if(localX<0 || localY<0 || localX>cellSize || localY>cellSize) return
             selectCell(r*8+c)
