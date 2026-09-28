@@ -57,7 +57,7 @@ Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başar
 ## Google Play hazırlığı
 - compileSdk: 36
 - targetSdk: 36
-- versionName: 9.0
-- versionCode: 9
+- versionName: 10.1
+- versionCode: 11
 - Bu sürümdeki AdMob kimlikleri hâlâ Google test kimlikleridir; yayın öncesi gerçek AdMob kimlikleri değiştirilmelidir.
 - AAB yayınlamak için Google Play App Signing / imzalama adımı ayrıca yapılmalıdır.
