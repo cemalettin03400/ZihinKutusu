@@ -455,6 +455,7 @@ class MainActivity : Activity() {
         bar.addView(gameButton("🧹\nTEMİZLE") { clearSelection() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(0, 0, dp(4), 0) })
         bar.addView(gameButton("💡\nİPUCU") { hint() }, LinearLayout.LayoutParams(0, dp(50), 1f).apply { setMargins(dp(4), 0, 0, 0) })
         root.addView(bar)
+        root.addView(gameButton("✓  KELİMEYİ KONTROL ET") { checkWord() }, LinearLayout.LayoutParams(-1, dp(48)).apply { setMargins(0, dp(4), 0, 0) })
 
         val navigation = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         navigation.addView(gameButton("← OYUNA GERİ DÖN") { startGame() }, LinearLayout.LayoutParams(0, dp(40), 1f).apply { setMargins(0, dp(5), dp(4), 0) })
@@ -753,7 +754,6 @@ class MainActivity : Activity() {
         private var puzzle: WordPuzzle? = null
         private var cellSize = 0f
         private var gap = dp(3).toFloat()
-        private var active = false
 
         fun setPuzzle(p: WordPuzzle) { puzzle = p }
 
@@ -768,43 +768,47 @@ class MainActivity : Activity() {
             paint.textAlign = Paint.Align.CENTER
             paint.typeface = Typeface.DEFAULT_BOLD
             for (i in 0 until GRID_SIZE * GRID_SIZE) {
-                val r=i/GRID_SIZE; val c=i%GRID_SIZE
-                val left=ox+c*(cellSize+gap); val top=oy+r*(cellSize+gap)
-                val selected=selectedCells.contains(i)
-                val foundCell=isFoundCell(i)
-                paint.style=Paint.Style.FILL
-                paint.color=when { i==hintCell -> Color.rgb(255,222,102); selected -> Color.rgb(205,184,247); foundCell -> Color.rgb(215,242,222); else -> Color.WHITE }
-                canvas.drawRoundRect(left,top,left+cellSize,top+cellSize,dp(9).toFloat(),dp(9).toFloat(),paint)
-                paint.color=Color.rgb(48,35,60)
-                paint.textSize=cellSize*0.48f
-                val cy=top+cellSize/2f-(paint.ascent()+paint.descent())/2f
-                canvas.drawText(p.grid[r][c].toString(),left+cellSize/2f,cy,paint)
+                val r = i / GRID_SIZE; val c = i % GRID_SIZE
+                val left = ox + c * (cellSize + gap); val top = oy + r * (cellSize + gap)
+                val selected = selectedCells.contains(i)
+                val foundCell = isFoundCell(i)
+                paint.style = Paint.Style.FILL
+                paint.color = when {
+                    i == hintCell -> Color.rgb(255, 222, 102)
+                    selected -> Color.rgb(205, 184, 247)
+                    foundCell -> Color.rgb(215, 242, 222)
+                    else -> Color.WHITE
+                }
+                canvas.drawRoundRect(left, top, left + cellSize, top + cellSize, dp(9).toFloat(), dp(9).toFloat(), paint)
+                paint.color = Color.rgb(48, 35, 60)
+                paint.textSize = cellSize * 0.48f
+                val cy = top + cellSize / 2f - (paint.ascent() + paint.descent()) / 2f
+                canvas.drawText(p.grid[r][c].toString(), left + cellSize / 2f, cy, paint)
             }
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            val p=puzzle ?: return true
-            when(event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    selectedCells.clear(); swipeDr=0; swipeDc=0; active=true; addFromPoint(event.x,event.y); hintCell=-1; invalidate(); updateSelectionText(); return true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if(active) { addFromPoint(event.x,event.y); invalidate(); updateSelectionText() }; return true
-                }
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if(active) { active=false; finishSwipeSelection() }; return true
-                }
-            }
+            if (event.actionMasked != MotionEvent.ACTION_UP) return true
+            val index = cellIndexAt(event.x, event.y) ?: return true
+            selectCell(index)
+            invalidate()
+            updateSelectionText()
             return true
         }
 
-        private fun addFromPoint(x:Float,y:Float) {
-            val size=minOf(width,height); cellSize=(size-gap*(GRID_SIZE-1))/GRID_SIZE; val total=cellSize*GRID_SIZE+gap*(GRID_SIZE-1); val ox=(width-total)/2f; val oy=(height-total)/2f
-            val c=((x-ox)/(cellSize+gap)).toInt(); val r=((y-oy)/(cellSize+gap)).toInt()
-            if(r !in 0 until GRID_SIZE || c !in 0 until GRID_SIZE) return
-            val localX=(x-ox)-c*(cellSize+gap); val localY=(y-oy)-r*(cellSize+gap)
-            if(localX<0 || localY<0 || localX>cellSize || localY>cellSize) return
-            selectCell(r*8+c)
+        private fun cellIndexAt(x: Float, y: Float): Int? {
+            val size = minOf(width, height)
+            cellSize = (size - gap * (GRID_SIZE - 1)) / GRID_SIZE
+            val total = cellSize * GRID_SIZE + gap * (GRID_SIZE - 1)
+            val ox = (width - total) / 2f
+            val oy = (height - total) / 2f
+            val c = ((x - ox) / (cellSize + gap)).toInt()
+            val r = ((y - oy) / (cellSize + gap)).toInt()
+            if (r !in 0 until GRID_SIZE || c !in 0 until GRID_SIZE) return null
+            val localX = (x - ox) - c * (cellSize + gap)
+            val localY = (y - oy) - r * (cellSize + gap)
+            if (localX < 0 || localY < 0 || localX > cellSize || localY > cellSize) return null
+            return r * GRID_SIZE + c
         }
     }
 
