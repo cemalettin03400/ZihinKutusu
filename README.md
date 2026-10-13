@@ -61,3 +61,19 @@ Başarılar, istatistikler, toplam kelime/bölüm takibi, en uzun seri ve başar
 - versionCode: 11
 - Bu sürümdeki AdMob kimlikleri hâlâ Google test kimlikleridir; yayın öncesi gerçek AdMob kimlikleri değiştirilmelidir.
 - AAB yayınlamak için Google Play App Signing / imzalama adımı ayrıca yapılmalıdır.
+
+
+## Zihin Kutusu 10.2 – Hata düzeltmeleri ve oynanış
+- Harf ızgarası artık ACTION_DOWN / MOVE / UP olaylarını işleyerek gerçek kaydırmalı kelime seçimini destekler.
+- Hızlı kaydırmalarda arada kalan hücreler de yakalanır.
+- Parmağı kaldırınca seçilen kelime otomatik kontrol edilir.
+- İptal edilen dokunma hareketi seçimi temizler.
+- Yanlış kelimeyi açıkça kontrol etmek yıldız hesabında hata olarak sayılır; can veya puan cezası uygulanmaz.
+- Bölüm tamamlanma ekranındaki altın ödülü doğru gösterilir.
+
+
+## Sürüm 10.3
+- Bilgisayara karşı yarış modu eklendi.
+- Yarış öncesi Kolay / Normal / Zor seçimi bulunur.
+- Bilgisayarın kelime bulma temposu zorluk seviyesine göre ayarlanır.
+- Play Store kısa güncelleme açıklaması: “Bilgisayara karşı yarış! Kolay, Normal veya Zor seviyesini seç; kelimeleri rakibinden önce bul. Kaydırmalı seçim ve oynanış iyileştirmeleri.”

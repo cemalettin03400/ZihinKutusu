@@ -12,6 +12,8 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.os.Vibrator
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.animation.AlphaAnimation
@@ -47,6 +49,12 @@ class MainActivity : Activity() {
     private var soundEnabled = true
     private var vibrationEnabled = true
     private var toneGenerator: ToneGenerator? = null
+    private var raceMode = false
+    private var raceDifficulty = "Normal"
+    private var computerFound = 0
+    private var raceStatusText: TextView? = null
+    private val raceHandler = Handler(Looper.getMainLooper())
+    private var raceRunnable: Runnable? = null
 
     private val prefs by lazy { getSharedPreferences("game", 0) }
 
@@ -92,6 +100,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        stopRace()
         toneGenerator?.release()
         toneGenerator = null
         super.onDestroy()
@@ -305,6 +314,8 @@ class MainActivity : Activity() {
     }
 
     private fun showMenu() {
+        stopRace()
+        raceMode = false
         root = base()
         root.addView(title("🧠 ZİHİN KUTUSU", 30f), LinearLayout.LayoutParams(-1, dp(55)))
         root.addView(TextView(this).apply {
@@ -324,7 +335,8 @@ class MainActivity : Activity() {
         }
         root.addView(stats, LinearLayout.LayoutParams(-1, dp(52)).apply { setMargins(0, dp(4), 0, dp(10)) })
 
-        root.addView(gameButton("🎯  OYUNA BAŞLA\nBölüm $level" ) { startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton("🎯  OYUNA BAŞLA\nBölüm $level" ) { raceMode = false; startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton("🤖  BİLGİSAYARA KARŞI YARIŞ" ) { chooseRaceDifficulty() }, LinearLayout.LayoutParams(-1, dp(58)).apply { setMargins(0, 0, 0, dp(8)) })
         root.addView(gameButton("🗺️  BÖLÜMLER\n1 - 100" ) { showLevels() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
         val infoRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         infoRow.addView(gameButton("🏆\nBAŞARILAR") { showAchievements() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(0, 0, dp(4), dp(8)) })
@@ -344,6 +356,46 @@ class MainActivity : Activity() {
         root.addView(note, LinearLayout.LayoutParams(-1, dp(65)))
         addAd()
         setContentView(root)
+    }
+
+    private fun chooseRaceDifficulty() {
+        val choices = arrayOf("Kolay — Bilgisayar yavaş kelime bulur", "Normal — Orta hızda yarış", "Zor — Bilgisayar hızlı kelime bulur")
+        AlertDialog.Builder(this).setTitle("🤖 Bilgisayar zorluğunu seç")
+            .setItems(choices) { _, which ->
+                raceDifficulty = when (which) { 0 -> "Kolay"; 1 -> "Normal"; else -> "Zor" }
+                raceMode = true
+                computerFound = 0
+                startGame()
+            }.setNegativeButton("İPTAL", null).show()
+    }
+
+    private fun stopRace() {
+        raceRunnable?.let { raceHandler.removeCallbacks(it) }
+        raceRunnable = null
+    }
+
+    private fun startComputerRace() {
+        stopRace()
+        val p = currentPuzzle ?: return
+        val delayMs = when (raceDifficulty) { "Kolay" -> 12000L; "Zor" -> 3500L; else -> 7000L }
+        raceStatusText?.text = "🤖 Bilgisayar ($raceDifficulty): $computerFound/${p.words.size} kelime"
+        val task = object : Runnable {
+            override fun run() {
+                val puzzle = currentPuzzle ?: return
+                if (!raceMode || found.size >= puzzle.words.size) return
+                computerFound = (computerFound + 1).coerceAtMost(puzzle.words.size)
+                raceStatusText?.text = "🤖 Bilgisayar ($raceDifficulty): $computerFound/${puzzle.words.size} kelime"
+                if (computerFound >= puzzle.words.size) {
+                    stopRace()
+                    AlertDialog.Builder(this@MainActivity).setTitle("🤖 Bilgisayar kazandı!")
+                        .setMessage("Bilgisayar $raceDifficulty seviyesinde senden önce tüm kelimeleri buldu. Tekrar deneyebilirsin!")
+                        .setPositiveButton("TEKRAR YARIŞ") { _, _ -> computerFound = 0; raceMode = true; startGame() }
+                        .setNegativeButton("ANA MENÜ") { _, _ -> showMenu() }.setCancelable(false).show()
+                } else raceHandler.postDelayed(this, delayMs)
+            }
+        }
+        raceRunnable = task
+        raceHandler.postDelayed(task, delayMs)
     }
 
     private fun showLevels() {
@@ -397,6 +449,8 @@ class MainActivity : Activity() {
     }
 
     private fun startGame() {
+        stopRace()
+        if (raceMode) computerFound = 0
         found = mutableSetOf()
         selectedCells = mutableListOf()
         hintCell = -1
@@ -411,7 +465,7 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER_VERTICAL
         }
         top.addView(gameButton("←\nGERİ") { showLevels() }, LinearLayout.LayoutParams(dp(68), dp(44)).apply { setMargins(0, 0, dp(4), 0) })
-        infoText = title("Bölüm $level", 18f)
+        infoText = title(if (raceMode) "🤖 BİLGİSAYARA KARŞI" else "Bölüm $level", 16f)
         top.addView(infoText, LinearLayout.LayoutParams(0, dp(44), 1f))
         top.addView(gameButton("⌂\nANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(dp(96), dp(44)).apply { setMargins(dp(4), 0, 0, 0) })
         root.addView(top)
@@ -423,6 +477,12 @@ class MainActivity : Activity() {
             setTextColor(Color.DKGRAY)
         }
         root.addView(livesText, LinearLayout.LayoutParams(-1, dp(32)))
+        raceStatusText = if (raceMode) TextView(this).apply {
+            textSize = 13f
+            gravity = Gravity.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(Color.rgb(108, 63, 199))
+        }.also { root.addView(it, LinearLayout.LayoutParams(-1, dp(26))) } else null
 
         root.addView(TextView(this).apply {
             text = "BULUNACAK KELİMELER"
@@ -465,6 +525,7 @@ class MainActivity : Activity() {
         addAd()
         setContentView(root)
         renderPuzzle()
+        if (raceMode) startComputerRace()
     }
 
     private fun renderPuzzle() {
@@ -605,11 +666,15 @@ class MainActivity : Activity() {
             updateAchievements()
             val starsLine = "⭐".repeat(stars)
             val bestLine = if (stars > oldStars) "\nYeni rekor!" else ""
+            stopRace()
+            val resultTitle = if (raceMode) "🏆 Yarışı kazandın!" else "🏆 Bölüm Tamamlandı!"
+            val resultMessage = if (raceMode) "Bilgisayarı ($raceDifficulty) yendin!\n$starsLine\n\n+${15 + stars * 5} altın"
+                else "Bölüm $completedLevel\n$starsLine\n\n+${15 + stars * 5} altın$bestLine\n\nSıradaki bölüm: $level"
             AlertDialog.Builder(this)
-                .setTitle("🏆 Bölüm Tamamlandı!")
-                .setMessage("Bölüm $completedLevel\n$starsLine\n\n+$stars × 5 bonus altın$bestLine\n\nSıradaki bölüm: $level")
-                .setPositiveButton("DEVAM ET") { _, _ -> startGame() }
-                .setNegativeButton("BÖLÜMLER") { _, _ -> showLevels() }
+                .setTitle(resultTitle)
+                .setMessage(resultMessage)
+                .setPositiveButton(if (raceMode) "TEKRAR YARIŞ" else "DEVAM ET") { _, _ -> if (raceMode) { computerFound = 0; startGame() } else startGame() }
+                .setNegativeButton("BÖLÜMLER") { _, _ -> raceMode = false; showLevels() }
                 .setNeutralButton("MENÜ") { _, _ -> showMenu() }
                 .setCancelable(false).show()
         } else {
@@ -635,6 +700,7 @@ class MainActivity : Activity() {
         if (p.words.contains(selected) && !found.contains(selected)) {
             acceptWord(selected)
         } else {
+            wrongAttempts++
             selectedCells.clear()
             swipeDr = 0
             swipeDc = 0
@@ -787,12 +853,57 @@ class MainActivity : Activity() {
             }
         }
 
+        private var lastTouchX = 0f
+        private var lastTouchY = 0f
+        private var didMove = false
+
         override fun onTouchEvent(event: MotionEvent): Boolean {
-            if (event.actionMasked != MotionEvent.ACTION_UP) return true
-            val index = cellIndexAt(event.x, event.y) ?: return true
-            selectCell(index)
-            invalidate()
-            updateSelectionText()
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    parent?.requestDisallowInterceptTouchEvent(true)
+                    lastTouchX = event.x
+                    lastTouchY = event.y
+                    didMove = false
+                    cellIndexAt(event.x, event.y)?.let { selectCell(it) }
+                    invalidate()
+                    updateSelectionText()
+                    return true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    // Hızlı kaydırmada arada kalan hücreleri de yakala.
+                    val dx = event.x - lastTouchX
+                    val dy = event.y - lastTouchY
+                    if (kotlin.math.abs(dx) + kotlin.math.abs(dy) > dp(6)) didMove = true
+                    val steps = (maxOf(kotlin.math.abs(dx), kotlin.math.abs(dy)) /
+                        maxOf(1f, cellSize / 4f)).toInt().coerceIn(1, 30)
+                    for (step in 1..steps) {
+                        val fraction = step / steps.toFloat()
+                        cellIndexAt(lastTouchX + dx * fraction, lastTouchY + dy * fraction)
+                            ?.let { selectCell(it) }
+                    }
+                    lastTouchX = event.x
+                    lastTouchY = event.y
+                    invalidate()
+                    updateSelectionText()
+                    return true
+                }
+                MotionEvent.ACTION_UP -> {
+                    cellIndexAt(event.x, event.y)?.let { selectCell(it) }
+                    if (didMove) finishSwipeSelection()
+                    performClick()
+                    invalidate()
+                    return true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    clearSelection()
+                    return true
+                }
+            }
+            return true
+        }
+
+        override fun performClick(): Boolean {
+            super.performClick()
             return true
         }
 

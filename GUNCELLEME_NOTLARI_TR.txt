@@ -1,0 +1,9 @@
+Zihin Kutusu – Güncelleme Notları (10.3)
+
+• Bilgisayara karşı yarış modu eklendi.
+• Yarış başlamadan önce Kolay, Normal veya Zor seviyesi seçilebilir.
+• Bilgisayarın kelime bulma hızı seçilen zorluk seviyesine göre değişir.
+• Kaydırarak kelime seçimi ve hızlı kaydırma iyileştirmeleri.
+• Yanlışlıkla yapılan dokunmalarda can ve puan kaybı yok.
+• Bölüm tamamlama ödül metni düzenlendi.
+• Türkçe harf desteği, puan, altın, ipucu ve başarı sistemi korunmuştur.
