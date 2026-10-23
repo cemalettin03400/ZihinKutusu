@@ -49,7 +49,7 @@ signingConfigs {
     kotlinOptions { jvmTarget = "17" }
     defaultConfig {
         applicationId="com.zihinkutusu.app"
-        minSdk=23
+        minSdk=24
         targetSdk=36
         versionCode=13
         versionName="10.3"
