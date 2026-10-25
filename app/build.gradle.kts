@@ -51,8 +51,8 @@ signingConfigs {
         applicationId="com.zihinkutusu.app"
         minSdk=24
         targetSdk=36
-        versionCode=13
-        versionName="10.3"
+        versionCode=14
+        versionName="10.4"
     }
 }
 

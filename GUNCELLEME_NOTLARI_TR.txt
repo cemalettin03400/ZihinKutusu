@@ -1,9 +1,5 @@
-Zihin Kutusu – Güncelleme Notları (10.3)
-
-• Bilgisayara karşı yarış modu eklendi.
-• Yarış başlamadan önce Kolay, Normal veya Zor seviyesi seçilebilir.
-• Bilgisayarın kelime bulma hızı seçilen zorluk seviyesine göre değişir.
-• Kaydırarak kelime seçimi ve hızlı kaydırma iyileştirmeleri.
-• Yanlışlıkla yapılan dokunmalarda can ve puan kaybı yok.
-• Bölüm tamamlama ödül metni düzenlendi.
-• Türkçe harf desteği, puan, altın, ipucu ve başarı sistemi korunmuştur.
+Zihin Kutusu 10.4 - Güncelleme hedefleri/özellikleri
+- 16 dilde ana menü, ayarlar ve bilgisayara karşı yarış zorluk seçimi için arayüz metinleri.
+- Ayarlar ekranından dil seçimi; seçim cihazda saklanır.
+- Sürüm adı 10.4, versionCode 14.
+ÖNEMLİ: Kelime bulmaca havuzu şu anda Türkçedir. Tüm oyun içi ekranların ve kelime havuzlarının her dile çevrilmesi için ek çalışma gerekir. Bu paket GitHub Actions ile derlenip test edilmelidir; burada Android derlemesi doğrulanmamıştır.

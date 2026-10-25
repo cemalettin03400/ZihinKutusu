@@ -92,9 +92,52 @@ class MainActivity : Activity() {
         listOf("KELİME", "HARF", "BULMACA", "ZEKA", "OYUN", "ÇÖZÜM")
     )
 
+
+    private var languageCode = "tr"
+    private val languageNames = linkedMapOf(
+        "tr" to "Türkçe", "en" to "English", "de" to "Deutsch", "fr" to "Français",
+        "es" to "Español", "ar" to "العربية", "ru" to "Русский", "it" to "Italiano",
+        "pt" to "Português", "zh" to "中文", "ja" to "日本語", "ko" to "한국어",
+        "hi" to "हिन्दी", "nl" to "Nederlands", "el" to "Ελληνικά", "pl" to "Polski"
+    )
+    private val uiText = mapOf(
+      "en" to mapOf("settings" to "SETTINGS", "sound" to "🔊 Sound", "vibration" to "📳 Vibration", "menu" to "← MAIN MENU", "start" to "🎯  START GAME\nLevel", "race" to "🤖  RACE AGAINST COMPUTER", "levels" to "🗺️  LEVELS\n1 - 100", "achievements" to "🏆\nACHIEVEMENTS", "stats" to "📊\nSTATISTICS", "help" to "❓  HOW TO PLAY?", "exit" to "🚪  EXIT", "language" to "🌐 Language", "choose" to "Choose language", "cancel" to "CANCEL", "raceTitle" to "🤖 Choose difficulty", "easy" to "Easy — Computer finds words slowly", "normal" to "Normal — Medium speed", "hard" to "Hard — Computer finds words quickly", "subtitle" to "🔎 Find words • Complete levels • Earn coins", "note" to "Find the hidden words in each level.\nSelect letters in order to complete a word!"),
+      "de" to mapOf("settings" to "EINSTELLUNGEN", "sound" to "🔊 Töne", "vibration" to "📳 Vibration", "menu" to "← HAUPTMENÜ", "start" to "🎯  SPIEL STARTEN\nLevel", "race" to "🤖  GEGEN COMPUTER SPIELEN", "levels" to "🗺️  LEVELS\n1 - 100", "achievements" to "🏆\nERFOLGE", "stats" to "📊\nSTATISTIK", "help" to "❓  SPIELANLEITUNG", "exit" to "🚪  BEENDEN", "language" to "🌐 Sprache", "choose" to "Sprache wählen", "cancel" to "ABBRECHEN", "raceTitle" to "🤖 Schwierigkeit wählen", "easy" to "Einfach — Computer langsam", "normal" to "Normal — Mittleres Tempo", "hard" to "Schwer — Computer schnell", "subtitle" to "🔎 Wörter finden • Level schaffen • Münzen verdienen", "note" to "Finde die versteckten Wörter in jedem Level.\nWähle Buchstaben der Reihe nach!"),
+      "fr" to mapOf("settings" to "PARAMÈTRES", "sound" to "🔊 Sons", "vibration" to "📳 Vibration", "menu" to "← MENU PRINCIPAL", "start" to "🎯  JOUER\nNiveau", "race" to "🤖  COURSE CONTRE L'ORDINATEUR", "levels" to "🗺️  NIVEAUX\n1 - 100", "achievements" to "🏆\nSUCCÈS", "stats" to "📊\nSTATISTIQUES", "help" to "❓  COMMENT JOUER ?", "exit" to "🚪  QUITTER", "language" to "🌐 Langue", "choose" to "Choisir la langue", "cancel" to "ANNULER", "raceTitle" to "🤖 Choisir la difficulté", "easy" to "Facile — ordinateur lent", "normal" to "Normal — vitesse moyenne", "hard" to "Difficile — ordinateur rapide", "subtitle" to "🔎 Trouvez des mots • Terminez les niveaux • Gagnez des pièces", "note" to "Trouvez les mots cachés dans chaque niveau.\nSélectionnez les lettres dans l'ordre !"),
+      "es" to mapOf("settings" to "AJUSTES", "sound" to "🔊 Sonidos", "vibration" to "📳 Vibración", "menu" to "← MENÚ PRINCIPAL", "start" to "🎯  JUGAR\nNivel", "race" to "🤖  COMPETIR CONTRA EL ORDENADOR", "levels" to "🗺️  NIVELES\n1 - 100", "achievements" to "🏆\nLOGROS", "stats" to "📊\nESTADÍSTICAS", "help" to "❓  ¿CÓMO JUGAR?", "exit" to "🚪  SALIR", "language" to "🌐 Idioma", "choose" to "Elegir idioma", "cancel" to "CANCELAR", "raceTitle" to "🤖 Elegir dificultad", "easy" to "Fácil — ordenador lento", "normal" to "Normal — velocidad media", "hard" to "Difícil — ordenador rápido", "subtitle" to "🔎 Encuentra palabras • Completa niveles • Gana monedas", "note" to "Encuentra las palabras ocultas en cada nivel.\n¡Selecciona las letras en orden!"),
+      "it" to mapOf("settings" to "IMPOSTAZIONI", "sound" to "🔊 Suoni", "vibration" to "📳 Vibrazione", "menu" to "← MENU PRINCIPALE", "start" to "🎯  INIZIA\nLivello", "race" to "🤖  SFIDA IL COMPUTER", "levels" to "🗺️  LIVELLI\n1 - 100", "achievements" to "🏆\nOBIETTIVI", "stats" to "📊\nSTATISTICHE", "help" to "❓  COME SI GIOCA?", "exit" to "🚪  ESCI", "language" to "🌐 Lingua", "choose" to "Scegli lingua", "cancel" to "ANNULLA", "raceTitle" to "🤖 Scegli difficoltà", "easy" to "Facile — computer lento", "normal" to "Normale — velocità media", "hard" to "Difficile — computer veloce", "subtitle" to "🔎 Trova parole • Completa livelli • Guadagna monete", "note" to "Trova le parole nascoste in ogni livello.\nSeleziona le lettere in ordine!"),
+      "pt" to mapOf("settings" to "CONFIGURAÇÕES", "sound" to "🔊 Sons", "vibration" to "📳 Vibração", "menu" to "← MENU PRINCIPAL", "start" to "🎯  JOGAR\nNível", "race" to "🤖  COMPETIR CONTRA O COMPUTADOR", "levels" to "🗺️  NÍVEIS\n1 - 100", "achievements" to "🏆\nCONQUISTAS", "stats" to "📊\nESTATÍSTICAS", "help" to "❓  COMO JOGAR?", "exit" to "🚪  SAIR", "language" to "🌐 Idioma", "choose" to "Escolher idioma", "cancel" to "CANCELAR", "raceTitle" to "🤖 Escolher dificuldade", "easy" to "Fácil — computador lento", "normal" to "Normal — velocidade média", "hard" to "Difícil — computador rápido", "subtitle" to "🔎 Encontre palavras • Complete níveis • Ganhe moedas", "note" to "Encontre as palavras escondidas em cada nível.\nSelecione as letras em ordem!"),
+      "nl" to mapOf("settings" to "INSTELLINGEN", "sound" to "🔊 Geluid", "vibration" to "📳 Trillen", "menu" to "← HOOFDMENU", "start" to "🎯  SPELEN\nLevel", "race" to "🤖  SPEEL TEGEN DE COMPUTER", "levels" to "🗺️  LEVELS\n1 - 100", "achievements" to "🏆\nPRESTATIES", "stats" to "📊\nSTATISTIEKEN", "help" to "❓  HOE SPEEL JE?", "exit" to "🚪  AFSLUITEN", "language" to "🌐 Taal", "choose" to "Kies taal", "cancel" to "ANNULEREN", "raceTitle" to "🤖 Kies moeilijkheid", "easy" to "Makkelijk — computer langzaam", "normal" to "Normaal — gemiddelde snelheid", "hard" to "Moeilijk — computer snel", "subtitle" to "🔎 Vind woorden • Voltooi levels • Verdien munten", "note" to "Vind de verborgen woorden in elk level.\nSelecteer letters op volgorde!"),
+      "pl" to mapOf("settings" to "USTAWIENIA", "sound" to "🔊 Dźwięki", "vibration" to "📳 Wibracje", "menu" to "← MENU GŁÓWNE", "start" to "🎯  GRAJ\nPoziom", "race" to "🤖  WYŚCIG Z KOMPUTEREM", "levels" to "🗺️  POZIOMY\n1 - 100", "achievements" to "🏆\nOSIĄGNIĘCIA", "stats" to "📊\nSTATYSTYKI", "help" to "❓  JAK GRAĆ?", "exit" to "🚪  WYJDŹ", "language" to "🌐 Język", "choose" to "Wybierz język", "cancel" to "ANULUJ", "raceTitle" to "🤖 Wybierz poziom trudności", "easy" to "Łatwy — wolny komputer", "normal" to "Normalny — średnie tempo", "hard" to "Trudny — szybki komputer", "subtitle" to "🔎 Znajduj słowa • Ukończ poziomy • Zdobywaj monety", "note" to "Znajdź ukryte słowa na każdym poziomie.\nWybieraj litery po kolei!"),
+      "ru" to mapOf("settings" to "НАСТРОЙКИ", "sound" to "🔊 Звуки", "vibration" to "📳 Вибрация", "menu" to "← ГЛАВНОЕ МЕНЮ", "start" to "🎯  ИГРАТЬ\nУровень", "race" to "🤖  СОРЕВНОВАНИЕ С КОМПЬЮТЕРОМ", "levels" to "🗺️  УРОВНИ\n1 - 100", "achievements" to "🏆\nДОСТИЖЕНИЯ", "stats" to "📊\nСТАТИСТИКА", "help" to "❓  КАК ИГРАТЬ?", "exit" to "🚪  ВЫХОД", "language" to "🌐 Язык", "choose" to "Выберите язык", "cancel" to "ОТМЕНА", "raceTitle" to "🤖 Выберите сложность", "easy" to "Легко — компьютер медленный", "normal" to "Нормально — средняя скорость", "hard" to "Сложно — компьютер быстрый", "subtitle" to "🔎 Ищите слова • Проходите уровни • Зарабатывайте монеты", "note" to "Найдите скрытые слова на каждом уровне.\nВыбирайте буквы по порядку!"),
+      "ar" to mapOf("settings" to "الإعدادات", "sound" to "🔊 الأصوات", "vibration" to "📳 الاهتزاز", "menu" to "← القائمة الرئيسية", "start" to "🎯  ابدأ اللعب\nالمستوى", "race" to "🤖  تسابق ضد الكمبيوتر", "levels" to "🗺️  المستويات\n1 - 100", "achievements" to "🏆\nالإنجازات", "stats" to "📊\nالإحصائيات", "help" to "❓  طريقة اللعب", "exit" to "🚪  خروج", "language" to "🌐 اللغة", "choose" to "اختر اللغة", "cancel" to "إلغاء", "raceTitle" to "🤖 اختر الصعوبة", "easy" to "سهل — الكمبيوتر بطيء", "normal" to "عادي — سرعة متوسطة", "hard" to "صعب — الكمبيوتر سريع", "subtitle" to "🔎 ابحث عن الكلمات • أكمل المراحل • اجمع العملات", "note" to "اعثر على الكلمات المخفية في كل مستوى.\nاختر الحروف بالترتيب!"),
+      "zh" to mapOf("settings" to "设置", "sound" to "🔊 音效", "vibration" to "📳 震动", "menu" to "← 主菜单", "start" to "🎯  开始游戏\n关卡", "race" to "🤖  与电脑比赛", "levels" to "🗺️ 关卡\n1 - 100", "achievements" to "🏆\n成就", "stats" to "📊\n统计", "help" to "❓  如何游戏？", "exit" to "🚪 退出", "language" to "🌐 语言", "choose" to "选择语言", "cancel" to "取消", "raceTitle" to "🤖 选择难度", "easy" to "简单 — 电脑速度慢", "normal" to "普通 — 中等速度", "hard" to "困难 — 电脑速度快", "subtitle" to "🔎 找单词 • 完成关卡 • 赢取金币", "note" to "找出每一关隐藏的单词。\n按顺序选择字母！"),
+      "ja" to mapOf("settings" to "設定", "sound" to "🔊 サウンド", "vibration" to "📳 振動", "menu" to "← メインメニュー", "start" to "🎯  ゲーム開始\nレベル", "race" to "🤖  コンピューターと対戦", "levels" to "🗺️ レベル\n1 - 100", "achievements" to "🏆\n実績", "stats" to "📊\n統計", "help" to "❓  遊び方", "exit" to "🚪 終了", "language" to "🌐 言語", "choose" to "言語を選択", "cancel" to "キャンセル", "raceTitle" to "🤖 難易度を選択", "easy" to "簡単 — コンピューターは遅い", "normal" to "普通 — 中速", "hard" to "難しい — コンピューターは速い", "subtitle" to "🔎 単語を探す • レベルをクリア • コインを獲得", "note" to "各レベルの隠れた単語を見つけよう。\n文字を順番に選択！"),
+      "ko" to mapOf("settings" to "설정", "sound" to "🔊 소리", "vibration" to "📳 진동", "menu" to "← 메인 메뉴", "start" to "🎯  게임 시작\n레벨", "race" to "🤖  컴퓨터와 대결", "levels" to "🗺️ 레벨\n1 - 100", "achievements" to "🏆\n업적", "stats" to "📊\n통계", "help" to "❓  게임 방법", "exit" to "🚪 종료", "language" to "🌐 언어", "choose" to "언어 선택", "cancel" to "취소", "raceTitle" to "🤖 난이도 선택", "easy" to "쉬움 — 컴퓨터 느림", "normal" to "보통 — 중간 속도", "hard" to "어려움 — 컴퓨터 빠름", "subtitle" to "🔎 단어 찾기 • 레벨 완료 • 코인 획득", "note" to "각 레벨에서 숨겨진 단어를 찾으세요.\n문자를 순서대로 선택하세요!"),
+      "hi" to mapOf("settings" to "सेटिंग्स", "sound" to "🔊 ध्वनि", "vibration" to "📳 कंपन", "menu" to "← मुख्य मेनू", "start" to "🎯  खेल शुरू करें\nस्तर", "race" to "🤖  कंप्यूटर के विरुद्ध खेलें", "levels" to "🗺️ स्तर\n1 - 100", "achievements" to "🏆\nउपलब्धियाँ", "stats" to "📊\nआँकड़े", "help" to "❓  कैसे खेलें?", "exit" to "🚪 बाहर निकलें", "language" to "🌐 भाषा", "choose" to "भाषा चुनें", "cancel" to "रद्द करें", "raceTitle" to "🤖 कठिनाई चुनें", "easy" to "आसान — धीमा कंप्यूटर", "normal" to "सामान्य — मध्यम गति", "hard" to "कठिन — तेज़ कंप्यूटर", "subtitle" to "🔎 शब्द खोजें • स्तर पूरे करें • सिक्के कमाएँ", "note" to "हर स्तर में छिपे शब्द खोजें।\nअक्षरों को क्रम से चुनें!"),
+      "el" to mapOf("settings" to "ΡΥΘΜΙΣΕΙΣ", "sound" to "🔊 Ήχοι", "vibration" to "📳 Δόνηση", "menu" to "← ΚΥΡΙΟ ΜΕΝΟΥ", "start" to "🎯  ΕΝΑΡΞΗ\nΕπίπεδο", "race" to "🤖  ΑΝΤΑΓΩΝΙΣΜΟΣ ΜΕ ΥΠΟΛΟΓΙΣΤΗ", "levels" to "🗺️ ΕΠΙΠΕΔΑ\n1 - 100", "achievements" to "🏆\nΕΠΙΤΕΥΓΜΑΤΑ", "stats" to "📊\nΣΤΑΤΙΣΤΙΚΑ", "help" to "❓  ΠΩΣ ΠΑΙΖΕΤΑΙ;", "exit" to "🚪 ΕΞΟΔΟΣ", "language" to "🌐 Γλώσσα", "choose" to "Επιλογή γλώσσας", "cancel" to "ΑΚΥΡΟ", "raceTitle" to "🤖 Επιλογή δυσκολίας", "easy" to "Εύκολο — αργός υπολογιστής", "normal" to "Κανονικό — μέτρια ταχύτητα", "hard" to "Δύσκολο — γρήγορος υπολογιστής", "subtitle" to "🔎 Βρες λέξεις • Ολοκλήρωσε επίπεδα • Κέρδισε νομίσματα", "note" to "Βρες τις κρυμμένες λέξεις σε κάθε επίπεδο.\nΕπίλεξε τα γράμματα με τη σειρά!")
+    )
+    private fun tr(key: String, fallback: String): String =
+        uiText[languageCode]?.get(key) ?: fallback
+
+    private fun chooseLanguage() {
+        val codes = languageNames.keys.toList()
+        AlertDialog.Builder(this)
+            .setTitle(tr("choose", "Dil seç"))
+            .setSingleChoiceItems(languageNames.values.toTypedArray(), codes.indexOf(languageCode)) { dialog, which ->
+                languageCode = codes[which]
+                prefs.edit().putString("languageCode", languageCode).apply()
+                dialog.dismiss()
+                showSettings()
+            }
+            .setNegativeButton(tr("cancel", "İPTAL"), null)
+            .show()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         load()
+        languageCode = prefs.getString("languageCode", "tr") ?: "tr"
         MobileAds.initialize(this) {}
         showMenu()
     }
@@ -220,9 +263,9 @@ class MainActivity : Activity() {
 
     private fun showSettings() {
         root = base()
-        root.addView(title("⚙️ AYARLAR", 28f), LinearLayout.LayoutParams(-1, dp(55)))
+        root.addView(title("⚙️ " + tr("settings", "AYARLAR"), 28f), LinearLayout.LayoutParams(-1, dp(55)))
         val sound = Switch(this).apply {
-            text = "🔊 Sesler"
+            text = tr("sound", "🔊 Sesler")
             textSize = 18f
             isChecked = soundEnabled
             setPadding(dp(12), 0, dp(12), 0)
@@ -234,7 +277,7 @@ class MainActivity : Activity() {
         }
         root.addView(sound, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, dp(8), 0, dp(6)) })
         val vibration = Switch(this).apply {
-            text = "📳 Titreşim"
+            text = tr("vibration", "📳 Titreşim")
             textSize = 18f
             isChecked = vibrationEnabled
             setPadding(dp(12), 0, dp(12), 0)
@@ -253,7 +296,8 @@ class MainActivity : Activity() {
             setTextColor(Color.DKGRAY)
             background = rounded(Color.WHITE, 16f)
         }, LinearLayout.LayoutParams(-1, dp(110)).apply { setMargins(0, 0, 0, dp(10)) })
-        root.addView(gameButton("← ANA MENÜ") { showMenu() }, LinearLayout.LayoutParams(-1, dp(52)))
+        root.addView(gameButton(tr("language", "🌐 Dil: ") + " " + (languageNames[languageCode] ?: "Türkçe")) { chooseLanguage() }, LinearLayout.LayoutParams(-1, dp(52)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("menu", "← ANA MENÜ")) { showMenu() }, LinearLayout.LayoutParams(-1, dp(52)))
         setContentView(root)
     }
 
@@ -319,7 +363,7 @@ class MainActivity : Activity() {
         root = base()
         root.addView(title("🧠 ZİHİN KUTUSU", 30f), LinearLayout.LayoutParams(-1, dp(55)))
         root.addView(TextView(this).apply {
-            text = "🔎 Kelimeleri bul • Bölümleri tamamla • Altın kazan"
+            text = tr("subtitle", "🔎 Kelimeleri bul • Bölümleri tamamla • Altın kazan")
             textSize = 15f
             gravity = Gravity.CENTER
             setTextColor(Color.DKGRAY)
@@ -335,20 +379,20 @@ class MainActivity : Activity() {
         }
         root.addView(stats, LinearLayout.LayoutParams(-1, dp(52)).apply { setMargins(0, dp(4), 0, dp(10)) })
 
-        root.addView(gameButton("🎯  OYUNA BAŞLA\nBölüm $level" ) { raceMode = false; startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
-        root.addView(gameButton("🤖  BİLGİSAYARA KARŞI YARIŞ" ) { chooseRaceDifficulty() }, LinearLayout.LayoutParams(-1, dp(58)).apply { setMargins(0, 0, 0, dp(8)) })
-        root.addView(gameButton("🗺️  BÖLÜMLER\n1 - 100" ) { showLevels() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("start", "🎯  OYUNA BAŞLA\nBölüm") + " $level" ) { raceMode = false; startGame() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("race", "🤖  BİLGİSAYARA KARŞI YARIŞ") ) { chooseRaceDifficulty() }, LinearLayout.LayoutParams(-1, dp(58)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("levels", "🗺️  BÖLÜMLER\n1 - 100") ) { showLevels() }, LinearLayout.LayoutParams(-1, dp(68)).apply { setMargins(0, 0, 0, dp(8)) })
         val infoRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        infoRow.addView(gameButton("🏆\nBAŞARILAR") { showAchievements() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(0, 0, dp(4), dp(8)) })
-        infoRow.addView(gameButton("📊\nİSTATİSTİK") { showStats() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(dp(4), 0, 0, dp(8)) })
+        infoRow.addView(gameButton(tr("achievements", "🏆\nBAŞARILAR")) { showAchievements() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(0, 0, dp(4), dp(8)) })
+        infoRow.addView(gameButton(tr("stats", "📊\nİSTATİSTİK")) { showStats() }, LinearLayout.LayoutParams(0, dp(62), 1f).apply { setMargins(dp(4), 0, 0, dp(8)) })
         root.addView(infoRow)
 
-        root.addView(gameButton("⚙️  AYARLAR" ) { showSettings() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
-        root.addView(gameButton("❓  NASIL OYNANIR?" ) { help() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
-        root.addView(gameButton("🚪  ÇIKIŞ" ) { exitGame() }, LinearLayout.LayoutParams(-1, dp(58)))
+        root.addView(gameButton("⚙️  " + tr("settings", "AYARLAR") ) { showSettings() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("help", "❓  NASIL OYNANIR?") ) { help() }, LinearLayout.LayoutParams(-1, dp(60)).apply { setMargins(0, 0, 0, dp(8)) })
+        root.addView(gameButton(tr("exit", "🚪  ÇIKIŞ") ) { exitGame() }, LinearLayout.LayoutParams(-1, dp(58)))
 
         val note = TextView(this).apply {
-            text = "Her bölümde gizlenmiş kelimeleri bul.\nHarfleri sırayla seç ve kelimeyi tamamla!"
+            text = tr("note", "Her bölümde gizlenmiş kelimeleri bul.\nHarfleri sırayla seç ve kelimeyi tamamla!")
             gravity = Gravity.CENTER
             textSize = 14f
             setTextColor(Color.GRAY)
@@ -359,14 +403,14 @@ class MainActivity : Activity() {
     }
 
     private fun chooseRaceDifficulty() {
-        val choices = arrayOf("Kolay — Bilgisayar yavaş kelime bulur", "Normal — Orta hızda yarış", "Zor — Bilgisayar hızlı kelime bulur")
-        AlertDialog.Builder(this).setTitle("🤖 Bilgisayar zorluğunu seç")
+        val choices = arrayOf(tr("easy", "Kolay — Bilgisayar yavaş kelime bulur"), tr("normal", "Normal — Orta hızda yarış"), tr("hard", "Zor — Bilgisayar hızlı kelime bulur"))
+        AlertDialog.Builder(this).setTitle(tr("raceTitle", "🤖 Bilgisayar zorluğunu seç"))
             .setItems(choices) { _, which ->
                 raceDifficulty = when (which) { 0 -> "Kolay"; 1 -> "Normal"; else -> "Zor" }
                 raceMode = true
                 computerFound = 0
                 startGame()
-            }.setNegativeButton("İPTAL", null).show()
+            }.setNegativeButton(tr("cancel", "İPTAL"), null).show()
     }
 
     private fun stopRace() {
