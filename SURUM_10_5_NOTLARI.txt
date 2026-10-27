@@ -1,0 +1,14 @@
+Zihin Kutusu 10.5 — Sürüm notları
+
+- Seçilen dile göre bulmaca kelime havuzu kullanılır.
+- Bilgisayara karşı yarış, seçili dildeki kelime havuzuyla çalışacak şekilde düzenlenmiştir.
+- Harf tablosundaki rastgele harfler seçili dile göre oluşturulur.
+- Türkçe kelime havuzu korunur.
+- Sürüm adı 10.5, versionCode 15 olarak ayarlandı.
+
+Yayın öncesi kontrol listesi:
+1. GitHub Actions üzerinde release AAB derlemesini çalıştırın.
+2. Derleme tamamlanmazsa hataları giderin; bu ZIP için burada Android derlemesi çalıştırılmadı.
+3. AAB imzasının önceki Play sürümüyle aynı yükleme anahtarını kullandığını doğrulayın.
+4. Dahili test kanalında 16 dili, normal modu ve bilgisayar yarışını deneyin.
+5. Testler geçmeden üretime yayımlamayın.
