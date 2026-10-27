@@ -1,0 +1,9 @@
+Zihin Kutusu - çok dilli kelime havuzu düzeltmesi
+
+- Bulmaca üretimi artık seçili dile göre kelime havuzunu kullanır.
+- Bilgisayar yarışı aynı oluşturulan bulmacayı kullandığı için seçilen dil ile uyumludur.
+- Harf tablosundaki rastgele harfler seçili dilin alfabesine göre üretilir.
+- Türkçe için mevcut kelime bankası ve Türk alfabesi korunmuştur.
+
+ÖNEMLİ TEST NOTU:
+Bu kaynak paketi bu ortamda Android/Gradle derlemesinden geçirilemedi; derleme aracı kurulu değil. Bu nedenle Google Play'e yüklemeden önce GitHub Actions ile derleyip gerçek cihazda test edin. Bazı dillerde kullanılan yazı sistemlerinin harf birleştirme/çizim davranışı cihazda ayrıca kontrol edilmelidir.

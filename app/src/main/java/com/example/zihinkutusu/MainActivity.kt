@@ -93,6 +93,37 @@ class MainActivity : Activity() {
     )
 
 
+    // Her dil için ayrı kelime havuzu; bilgisayar yarışı da aynı bulmacayı kullandığı için burada seçili dili izler.
+    private val localizedWordBanks: Map<String, List<List<String>>> = mapOf(
+        "en" to listOf(listOf("CHAIR", "WALL", "TABLE", "DOOR", "CLOCK", "WINDOW", "FLOOR", "ROOM"), listOf("APPLE", "PEAR", "BANANA", "CHERRY", "PEACH", "PLUM"), listOf("OCEAN", "SUN", "CLOUD", "RAIN", "WIND", "EARTH")),
+        "de" to listOf(listOf("STUHL", "WAND", "TISCH", "TUER", "UHR", "FENSTER", "BODEN", "RAUM"), listOf("APFEL", "BIRNE", "BANANE", "KIRSCHE", "PFIRSICH", "PFLAUME")),
+        "fr" to listOf(listOf("CHAISE", "MUR", "TABLE", "PORTE", "HORLOGE", "FENETRE", "SOL", "PIECE"), listOf("POMME", "POIRE", "BANANE", "CERISE", "PECHE", "PRUNE")),
+        "es" to listOf(listOf("SILLA", "PARED", "MESA", "PUERTA", "RELOJ", "VENTANA", "SUELO", "CUARTO"), listOf("MANZANA", "PERA", "PLATANO", "CEREZA", "MELOCOTON", "CIRUELA")),
+        "ar" to listOf(listOf("كرسي", "جدار", "طاولة", "باب", "ساعة", "نافذة", "أرض", "غرفة"), listOf("تفاح", "كمثرى", "موز", "كرز", "خوخ", "برقوق")),
+        "ru" to listOf(listOf("СТУЛ", "СТЕНА", "СТОЛ", "ДВЕРЬ", "ЧАСЫ", "ОКНО", "ПОЛ", "КОМНАТА"), listOf("ЯБЛОКО", "ГРУША", "БАНАН", "ВИШНЯ", "ПЕРСИК", "СЛИВА")),
+        "it" to listOf(listOf("SEDIA", "MURO", "TAVOLO", "PORTA", "OROLOGIO", "FINESTRA", "PAVIMENTO", "STANZA"), listOf("MELA", "PERA", "BANANA", "CILIEGIA", "PESCA", "PRUGNA")),
+        "pt" to listOf(listOf("CADEIRA", "PAREDE", "MESA", "PORTA", "RELOGIO", "JANELA", "CHAO", "QUARTO"), listOf("MACA", "PERA", "BANANA", "CEREJA", "PESSEGO", "AMEIXA")),
+        "zh" to listOf(listOf("椅子", "墙", "桌子", "门", "时钟", "窗户", "地板", "房间"), listOf("苹果", "梨", "香蕉", "樱桃", "桃子", "李子")),
+        "ja" to listOf(listOf("イス", "カベ", "ツクエ", "ドア", "トケイ", "マド", "ユカ", "ヘヤ"), listOf("リンゴ", "ナシ", "バナナ", "サクランボ", "モモ", "スモモ")),
+        "ko" to listOf(listOf("의자", "벽", "탁자", "문", "시계", "창문", "바닥", "방"), listOf("사과", "배", "바나나", "체리", "복숭아", "자두")),
+        "hi" to listOf(listOf("कुर्सी", "दीवार", "मेज", "दरवाजा", "घड़ी", "खिड़की", "फर्श", "कमरा"), listOf("सेब", "नाशपाती", "केला", "चेरी", "आड़ू", "आलूबुखारा")),
+        "nl" to listOf(listOf("STOEL", "MUUR", "TAFEL", "DEUR", "KLOK", "RAAM", "VLOER", "KAMER"), listOf("APPEL", "PEER", "BANAAN", "KERS", "PERZIK", "PRUIM")),
+        "el" to listOf(listOf("ΚΑΡΕΚΛΑ", "ΤΟΙΧΟΣ", "ΤΡΑΠΕΖΙ", "ΠΟΡΤΑ", "ΡΟΛΟΙ", "ΠΑΡΑΘΥΡΟ", "ΠΑΤΩΜΑ", "ΔΩΜΑΤΙΟ"), listOf("ΜΗΛΟ", "ΑΧΛΑΔΙ", "ΜΠΑΝΑΝΑ", "ΚΕΡΑΣΙ", "ΡΟΔΑΚΙΝΟ", "ΔΑΜΑΣΚΗΝΟ")),
+        "pl" to listOf(listOf("KRZESLO", "SCIANA", "STOL", "DRZWI", "ZEGAR", "OKNO", "PODLOGA", "POKOJ"), listOf("JABLKO", "GRUSZKA", "BANAN", "WISNIA", "BRZOSKWINIA", "SLIWKA"))
+    )
+    private fun activeWordBank(): List<List<String>> = if (languageCode == "tr") wordBank else localizedWordBanks[languageCode] ?: localizedWordBanks["en"]!!
+    private fun letterAlphabet(): String = when (languageCode) {
+        "tr" -> "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ"
+        "ru" -> "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯ"
+        "el" -> "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ"
+        "ar" -> "ابتثجحخدذرزسشصضطظعغفقكلمنهوي"
+        "zh" -> "天地人大小上下左右日月水火木金土山川口手目心"
+        "ja" -> "アイウエオカキクケコサシスセソタチツテトナニヌネノ"
+        "ko" -> "가나다라마바사아자차카타파하"
+        "hi" -> "अआइईउऊएऐओऔकखगघचछजझटठडढतथदधनपफबभमयरलवसह"
+        else -> "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    }
+
     private var languageCode = "tr"
     private val languageNames = linkedMapOf(
         "tr" to "Türkçe", "en" to "English", "de" to "Deutsch", "fr" to "Français",
@@ -774,7 +805,8 @@ class MainActivity : Activity() {
         prefs.getInt("stars_$levelNumber", 0).coerceIn(0, 3)
 
     private fun createPuzzle(level: Int): WordPuzzle {
-        val base = wordBank[(level - 1) % wordBank.size]
+        val bank = activeWordBank()
+        val base = bank[(level - 1) % bank.size]
         val count = when {
             level <= 10 -> 5
             level <= 30 -> 6
@@ -782,9 +814,9 @@ class MainActivity : Activity() {
             else -> 8
         }
         val words = base.distinct()
-            .filter { it.length in if (level <= 10) 3..7 else 4..8 }
+            .filter { it.length in if (level <= 10) 2..7 else 2..8 }
             .sortedByDescending { it.length }
-            .take(count)
+            .take(minOf(count, base.size))
         repeat(200) {
             val grid = Array(GRID_SIZE) { CharArray(GRID_SIZE) { ' ' } }
             val placements = mutableMapOf<String, List<Int>>()
@@ -858,7 +890,7 @@ class MainActivity : Activity() {
         return emptyList()
     }
 
-    private fun randomLetter(): Char = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".random()
+    private fun randomLetter(): Char = letterAlphabet().random()
     private inner class WordGridView(context: android.content.Context) : View(context) {
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         private var puzzle: WordPuzzle? = null
