@@ -34,6 +34,13 @@ signingConfigs {
 }
     buildTypes {
         getByName("release") {
+            // R8 ile release derlemesinde kod küçültme ve karartma etkin.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = signingConfigs.getByName("release")
         }
     }
