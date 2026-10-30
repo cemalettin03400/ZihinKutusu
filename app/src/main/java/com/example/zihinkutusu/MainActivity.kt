@@ -237,7 +237,7 @@ class MainActivity : Activity() {
 
     private fun addAd() {
         val ad = AdView(this).apply {
-            adUnitId = "ca-app-pub-3940256099942544/6300978111"
+            adUnitId = "ca-app-pub-2692425898190134/1634647228"
             setAdSize(AdSize.BANNER)
             loadAd(AdRequest.Builder().build())
         }
